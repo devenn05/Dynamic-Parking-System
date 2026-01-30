@@ -112,29 +112,6 @@ A price multiplier is applied based on how full the parking lot is at the **time
 - Payment processing is out of scope; only bill calculation is handled.
 
 ---
-
-## 7. How to Run the Application
-
-#### Prerequisites
-
--   Java Development Kit (JDK) 17 or later.
--   Maven.
-
-#### Steps
-
-1.  **Clone the repository:**
-    ```sh
-    git clone <repository-url>
-    ```
-
-2.  **Navigate to the project directory:**
-    ```sh
-    cd path/to/backend/parking-system
-    ```
-
-3.  **Run the application using the Maven Spring Boot plugin:**
-    ```sh
-    mvn spring-boot:run
     ```
 
 4.  The application will start, and the REST API will be available at `http://localhost:8080`.
