@@ -10,7 +10,7 @@ As per the requirements, the focus is on functionality and clarity over complex 
 
 ## 2. Tech Stack
 
--   **Angular 21.1.2**
+-   **Angular 21.1.0**
 -   **TypeScript**
 -   **HTML**
 -   **CSS** (No heavy UI frameworks)
