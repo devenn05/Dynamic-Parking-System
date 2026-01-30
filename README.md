@@ -57,9 +57,9 @@ The project is organized into two main sub-directories:
 
 ```
 .
-├── backend/          # Contains the Java Spring Boot Application
+├── parking-system-backend/          # Contains the Java Spring Boot Application
 │   └── README.md     # Backend-specific documentation
-├── frontend/         # Contains the Angular Application
+├── parking-system-frontend/         # Contains the Angular Application
 │   └── README.md     # Frontend-specific documentation
 └── README.md         # This file (Project Overview)
 ```
@@ -94,7 +94,7 @@ First, start the Spring Boot backend, which will run on `http://localhost:8080`.
 
 ```sh
 # Navigate to the backend directory
-cd backend
+cd parking-system-backend
 
 # Run the application using Maven
 mvn spring-boot:run
@@ -106,7 +106,7 @@ Open a **new terminal window** and start the Angular frontend, which will run on
 
 ```sh
 # Navigate to the frontend directory from the project root
-cd frontend
+cd parking-system-frontend
 
 # Install dependencies
 npm install
