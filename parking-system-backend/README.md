@@ -112,6 +112,3 @@ A price multiplier is applied based on how full the parking lot is at the **time
 - Payment processing is out of scope; only bill calculation is handled.
 
 ---
-    ```
-
-4.  The application will start, and the REST API will be available at `http://localhost:8080`.
