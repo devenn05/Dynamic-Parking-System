@@ -1,0 +1,110 @@
+<div class="container">
+
+  <!-- GLOBAL ERROR DISPLAY -->
+  <div *ngIf="errorMessage()" class="error">
+    {{ errorMessage() }}
+  </div>
+
+  <div class="row">
+
+    <!-- ENTRY SECTION -->
+    <div class="column" *ngIf="hasLots(); else noLots">
+      <div class="card">
+        <h3>Vehicle Entry</h3>
+
+         <!-- ENTRY FORM -->
+        <form (ngSubmit)="handleEntry()" #entryForm="ngForm">
+          <label>Vehicle No:</label>
+          <input
+            [(ngModel)]="entryData.vehicleNumber"
+            name="vNum"
+            placeholder="MH-12-AB-1234"
+            required
+            minlength="4"
+          />
+
+          <label>Type:</label>
+          <select [(ngModel)]="entryData.vehicleType" name="vType" required>
+            <option value="CAR">CAR</option>
+            <option value="BIKE">BIKE</option>
+          </select>
+
+          <label>Parking Lot:</label>
+          <select [(ngModel)]="entryData.parkingLotId" name="pLot" required>
+            <option
+              *ngFor="let lot of lots()"
+              [value]="lot.id"
+              [disabled]="lot.availableSlots === 0"
+            >
+              {{ lot.name }} ({{ lot.availableSlots }} slots free)
+            </option>
+          </select>
+
+          <button
+            type="submit"
+            [disabled]="!entryForm.valid"
+            [style.opacity]="!entryForm.valid ? '0.5' : '1'"
+          >
+            Park Vehicle
+          </button>
+        </form>
+        
+        <!-- TICKET RECEIPT DISPLAY -->
+        <!-- Only shows after successful entry -->
+        <div *ngIf="ticket()" class="ticket">
+          <h4>TICKET ISSUED</h4>
+          <p>Slot: <strong>{{ ticket()?.slotNumber }}</strong></p>
+          <p>Time: {{ ticket()?.entryTime | date:'short' }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- NO LOTS FALLBACK -->
+    <ng-template #noLots>
+      <div class="column">
+        <div class="card error">
+          No parking lots available. Please create a parking lot first.
+        </div>
+      </div>
+    </ng-template>
+
+    <!-- EXIT SECTION -->
+    <div class="column">
+      <div class="card">
+        <h3>Vehicle Exit</h3>
+
+        <!-- EXIT FORM -->
+        <form (ngSubmit)="handleExit()" #exitForm="ngForm">
+          <label>Vehicle No:</label>
+          <input
+            [(ngModel)]="exitData.vehicleNumber"
+            name="eVNum"
+            placeholder="MH-12-AB-1234"
+            required
+            minlength="4"
+          />
+
+          <button
+            type="submit"
+            class="exit-btn"
+            [disabled]="!exitForm.valid"
+            [style.opacity]="!exitForm.valid ? '0.5' : '1'"
+          >
+            Generate Bill
+          </button>
+        </form>
+
+         <!-- BILL RECEIPT DISPLAY -->
+        <!-- Only shows after successful exit -->
+        <div *ngIf="bill()" class="bill">
+          <h4>BILL GENERATED</h4>
+          <p>Amount: <strong>₹{{ bill()?.totalAmount }}</strong></p>
+          <p>Duration: {{ bill()?.duration }} Minutes</p>
+          <p>Entry: {{ bill()?.entryTime | date:'shortTime' }}</p>
+          <p>Exit: {{ bill()?.exitTime | date:'shortTime' }}</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

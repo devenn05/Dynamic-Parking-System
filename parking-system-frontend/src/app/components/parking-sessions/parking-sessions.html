@@ -1,0 +1,70 @@
+<div class="container">
+  <h2>Parking Sessions</h2>
+  
+  <!--  Dropdown to select a specific parking lot -->
+  <div style="margin-bottom: 20px;">
+    <label><strong>Filter by Parking Lot: </strong></label>
+    <select [ngModel]="selectedLotId()" (ngModelChange)="selectedLotId.set($event); loadData()">
+
+      <!-- Null value represents "No Filter" -->
+      <option [ngValue]="null">-- Show All Lots --</option>
+
+      <!-- List all available lots -->
+      <option *ngFor="let lot of lots()" [value]="lot.id">
+        {{ lot.name }}
+      </option>
+    </select>
+  </div>
+
+  <!--Buttons to switch between 'Active' and 'History' views.-->
+  <div class="tabs">
+    <button (click)="view.set('ACTIVE')" [class.active]="view() === 'ACTIVE'">Current Active Vehicles</button>
+    <button (click)="view.set('HISTORY')" [class.active]="view() === 'HISTORY'">History (All)</button>
+  </div>
+
+  <!-- TABLE 1: ACTIVE SESSIONS, Visible only when view === 'ACTIVE'-->
+  <table style="border: 1" *ngIf="view() === 'ACTIVE'">
+    <thead>
+      <tr>
+        <th>Vehicle</th>
+        <th>Vehicle Type</th>
+        <th>Slot</th>
+        <th>Entry Time</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let s of activeSession()">
+        <td>{{ s.vehicleNumber }}</td>
+        <td>{{s.vehicleType}}</td>
+        <td>{{ s.slotNumber }}</td>
+        <td>{{ s.entryTime | date:'medium' }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- TABLE 2: HISTORY SESSIONS, Visible only when view === 'HISTORY' -->
+  <table style="border: 1" *ngIf="view() === 'HISTORY'">
+    <thead>
+      <tr>
+        <th>Vehicle</th>
+        <th>Vehicle Type</th>
+        <th>Slot</th>
+        <th>Entry</th>
+        <th>Exit</th>
+        <th>Bill</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let s of historySession()">
+        <td>{{ s.vehicleNumber }}</td>
+        <td>{{s.vehicleType}}</td>
+        <td>{{ s.slotNumber }}</td>
+        <td>{{ s.entryTime | date:'short' }}</td>
+        <td>{{ s.exitTime | date:'short' }}</td>
+        <td>{{ s.totalAmount ? ('₹'+s.totalAmount) : '-' }}</td>
+        <td>{{ s.status}}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

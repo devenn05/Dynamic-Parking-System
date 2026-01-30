@@ -1,0 +1,12 @@
+<!-- 
+  GLOBAL NAVIGATION BAR 
+  Present on all pages. Uses 'routerLink' to navigate without page reloads.
+-->
+<nav style="background: #333; padding: 15px; color: white;">
+  <span style="font-weight: bold; margin-right: 20px;">Parking System</span>
+  <a routerLink="/operations" style="color: white; margin-right: 15px; text-decoration: none;">Entry/Exit</a>
+  <a routerLink="/lots" style="color: white; margin-right: 15px; text-decoration: none;">Manage Lots</a>
+  <a routerLink="/sessions" style="color: white; text-decoration: none;">Sessions</a>
+</nav>
+
+<router-outlet></router-outlet>

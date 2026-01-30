@@ -1,0 +1,52 @@
+<div class="container">
+  <h2>Manage Parking Lots</h2>
+
+  <!-- Error Message Display Area -->
+  <div *ngIf="errorMessage()" class="error">
+    {{ errorMessage() }}
+  </div>
+
+  <!-- Creation Form -->
+  <div class="card">
+    <h3>Create New Lot</h3>
+    <form (ngSubmit)="createLot()" #lotForm="ngForm">
+      
+      <!-- 2. Add validation attributes -->
+      <input type="text" [(ngModel)]="newLot.name" name="name" placeholder="Lot Name" required>
+      <input type="text" [(ngModel)]="newLot.location" name="location" placeholder="Location" required>
+      
+      <!-- 'min="1"' prevents client-side negatives, backend double-checks -->
+      <input type="number" [(ngModel)]="newLot.totalSlots" name="slots" placeholder="Total Slots" required min="1">
+      <input type="number" [(ngModel)]="newLot.basePricePerHour" name="price" placeholder="Base Price/Hr" required min="1">
+      
+      <!-- 3. Lock button if invalid -->
+      <button type="submit" [disabled]="!lotForm.valid" [style.opacity]="!lotForm.valid ? '0.5' : '1'">
+        Create Lot
+      </button>
+    </form>
+  </div>
+
+  <!-- List Table -->
+  <table style="border: 1">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Location</th>
+        <th>Occupancy</th>
+        <th>Price/Hr</th>
+      </tr>
+    </thead>
+    <tbody>
+  
+  <!-- Iterate through the signal 'lots()' -->
+  <tr *ngFor="let lot of lots()">
+    <td>{{ lot.id }}</td>
+    <td>{{ lot.name }}</td>
+    <td>{{ lot.location }}</td>
+    <td>{{ lot.availableSlots }} / {{ lot.totalSlots }}</td>
+    <td>{{ lot.basePricePerHour }}</td>
+  </tr>
+</tbody>
+  </table>
+</div>
