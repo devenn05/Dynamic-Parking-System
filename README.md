@@ -58,10 +58,10 @@ The project is organized into two main sub-directories:
 ```
 .
 ├── parking-system-backend/          # Contains the Java Spring Boot Application
-│   └── README.md     # Backend-specific documentation
+│   └── README.md                    # Backend-specific documentation
 ├── parking-system-frontend/         # Contains the Angular Application
-│   └── README.md     # Frontend-specific documentation
-└── README.md         # This file (Project Overview)
+│   └── README.md                    # Frontend-specific documentation
+└── README.md                        # This file (Project Overview)
 ```
 
 ---
