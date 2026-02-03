@@ -14,4 +14,10 @@
 
 </nav>
 
+<div *ngIf="loadingService.isLoading | async" class="spinner-overlay">
+  <div class="spinner"></div>
+  <p>Connecting to Parking System...</p>
+</div>
+
+
 <router-outlet></router-outlet>

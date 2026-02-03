@@ -1,6 +1,8 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { Component, Inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
 import { RouterOutlet, RouterLink  } from '@angular/router';
+import { LoadingService } from './services/Loading';
+import { CommonModule } from '@angular/common';
 
 /**
  * Root Application Component
@@ -11,7 +13,7 @@ import { RouterOutlet, RouterLink  } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink ],
+  imports: [RouterOutlet, RouterLink, CommonModule ],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -20,6 +22,7 @@ export class App implements OnInit {
 
   constructor(
     @Inject(DOCUMENT) private document: Document,
+    public loadingService: LoadingService,
     @Inject(PLATFORM_ID) private platformId: Object // <--- Inject Platform ID
   ) {}
 
