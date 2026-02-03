@@ -1,0 +1,25 @@
+/* Clean and Simple Styling per requirements */
+.container { padding: 20px; font-family: Arial, sans-serif; }
+.card { border: 1px solid #ccc; padding: 15px; border-radius: 8px; margin-bottom: 20px; background-color: #f9f9f9; }
+.row { display: flex; gap: 20px; }
+.column { flex: 1; }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+th, td { padding: 8px; text-align: left; }
+th { background-color: #007bff; color: white; }
+
+/* Forms */
+input, select { padding: 8px; margin: 5px 0 10px 0; width: 100%; box-sizing: border-box; }
+button { padding: 10px 15px; background-color: #28a745; color: white; border: 1px; cursor: pointer; }
+.exit-btn { background-color: #dc3545; }
+button:hover { opacity: 0.9; }
+
+/* Status */
+.error { color: red; font-weight: bold; padding: 10px; margin-bottom: 20px; background: #ffe6e6; }
+.ticket { background: #e6fffa; padding: 10px; border: 1px dashed #009977; margin-top: 10px; }
+.bill { background: #fff3cd; padding: 10px; border: 1px dashed #ffc107; margin-top: 10px; }
+
+/* Tabs */
+.tabs button { margin-right: 5px; background: #ddd; color: #333; }
+.tabs button.active { background: #007bff; color: white; }

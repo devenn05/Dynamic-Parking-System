@@ -1,0 +1,87 @@
+<div class="container">
+  
+  <!-- Dynamic Title -->
+  <h2>{{ isEditing() ? 'Update Parking Lot' : 'Manage Parking Lots' }}</h2>
+
+  <div *ngIf="errorMessage()" class="error">
+    {{ errorMessage() }}
+  </div>
+
+  <!-- Creation / Editing Form -->
+  <div class="card" [style.border]="isEditing() ? '2px solid orange' : '1px solid #ccc'">
+    <h3>{{ isEditing() ? 'Editing Lot #' + editingId() : 'Create New Lot' }}</h3>
+    
+    <form #lotForm="ngForm">
+      
+      <input type="text" [(ngModel)]="newLot.name" name="name" placeholder="Lot Name" required>
+      <input type="text" [(ngModel)]="newLot.location" name="location" placeholder="Location" required>
+      
+      <!-- Helper text for slots -->
+      <small *ngIf="isEditing()" style="color: red;">* Warning: You can increase slots, but cannot decrease them.</small>
+      <input type="number" [(ngModel)]="newLot.totalSlots" name="slots" placeholder="Total Slots" required min="1">
+      
+      <input type="number" [(ngModel)]="newLot.basePricePerHour" name="price" placeholder="Base Price/Hr" required min="1">
+      
+      <div style="margin-top: 10px;">
+          
+          <!-- Button: Shows ONLY if NOT editing -->
+          <button *ngIf="!isEditing()" 
+                  (click)="createLot()" 
+                  type="button" 
+                  [disabled]="!lotForm.valid"
+                  [style.opacity]="!lotForm.valid ? '0.5' : '1'">
+            Create Lot
+          </button>
+
+          <!-- Buttons: Show ONLY if editing -->
+          <button *ngIf="isEditing()" 
+                  (click)="updateCurrentLot()" 
+                  type="button" 
+                  style="background-color: orange; color: black; margin-right: 10px;">
+            Update Lot
+          </button>
+
+          <button *ngIf="isEditing()" 
+                  (click)="cancelEdit()" 
+                  type="button" 
+                  style="background-color: grey;">
+            Cancel
+          </button>
+
+      </div>
+    </form>
+  </div>
+
+  <!-- List Table -->
+  <table style="border: 1">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Location</th>
+        <th>Availability</th>
+        <th>Price/Hr</th>
+        <th>Action</th> 
+      </tr>
+    </thead>
+    <tbody>
+  
+      <tr *ngFor="let lot of lots()">
+        <td>{{ lot.id }}</td>
+        <td>{{ lot.name }}</td>
+        <td>{{ lot.location }}</td>
+        <td>{{ lot.availableSlots }} / {{ lot.totalSlots }}</td>
+        <td>{{ lot.basePricePerHour }}</td>
+        
+        <!-- Action Cell with Edit Button -->
+        <td style="text-align: center;"> 
+            <!-- This calls the new function startEdit() -->
+            <button (click)="startEdit(lot)" style="font-size: 12px; padding: 5px;">
+              Edit
+            </button>
+        </td>
+
+      </tr>
+    </tbody>
+  </table>
+</div>

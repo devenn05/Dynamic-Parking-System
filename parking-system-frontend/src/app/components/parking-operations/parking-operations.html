@@ -1,0 +1,155 @@
+<div class="container">
+
+  <!-- GLOBAL ERROR DISPLAY -->
+  <div *ngIf="errorMessage()" class="error">
+    {{ errorMessage() }}
+  </div>
+
+  <div class="row">
+
+    <!-- ENTRY SECTION -->
+    <div class="column" *ngIf="hasLots(); else noLots">
+      <div class="card">
+        <h3>Vehicle Entry</h3>
+
+         <!-- ENTRY FORM -->
+        <form (ngSubmit)="handleEntry()" #entryForm="ngForm">
+          <label>Vehicle No (Strictly follow the pattern: MH12AB1234 or 22BH1234AA) </label>
+          <input
+            [ngModel]="entryData.vehicleNumber"
+            (input)="formatVehicleNumber($event, 'ENTRY')" 
+            (focus)="clearMessages()"
+            name="vNum"
+            placeholder="MH12AB1234"
+            required
+            [pattern]="vehiclePattern" 
+          />
+          <!-- Visual Hint if pattern doesn't match -->
+           <div *ngIf="entryForm.controls['vNum']?.invalid && entryForm.controls['vNum']?.touched" style="color: red; font-size: 0.8em;">
+             Invalid Format. Standard or BH series only.
+           </div>
+
+          <label>Type:</label>
+          <select [(ngModel)]="entryData.vehicleType" name="vType" required>
+            <option value="CAR">CAR</option>
+            <option value="BIKE">BIKE</option>
+          </select>
+
+          <label>Parking Lot:</label>
+          <select [(ngModel)]="entryData.parkingLotId" name="pLot" required>
+            <option
+              *ngFor="let lot of lots()"
+              [value]="lot.id"
+              [disabled]="lot.availableSlots === 0"
+            >
+              {{ lot.name }} ({{ lot.availableSlots }} slots free)
+            </option>
+          </select>
+
+          <button
+            type="submit"
+            [disabled]="!entryForm.valid"
+            [style.opacity]="!entryForm.valid ? '0.5' : '1'"
+          >
+            Park Vehicle
+          </button>
+        </form>
+        
+        <!-- TICKET RECEIPT DISPLAY -->
+        <!-- Only shows after successful entry -->
+        <div *ngIf="ticket()" class="ticket">
+          <h4 style="color: black;">✅ TICKET ISSUED</h4>
+          <p style="font-size: 0.9em; color: black; margin-bottom: 10px;">
+            Token generated for <strong>{{ ticket()?.vehicleNumber }}</strong>. 
+            <br><em>Please show this vehicle number at the exit.</em>
+          </p>
+          <hr style="border: 0; border-top: 1px dashed #aaa;">
+          
+          <p>Slot: <strong>{{ ticket()?.slotNumber }}</strong></p>
+          <p>Date: {{ ticket()?.entryTime | date:'mediumDate' }}</p>
+          <p>Time: {{ ticket()?.entryTime | date:'shortTime' }}</p>
+          <p>Lot: {{ ticket()?.parkingLotName }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- NO LOTS FALLBACK -->
+    <ng-template #noLots>
+      <div class="column">
+        <div class="card error">
+          No parking lots available. Please create a parking lot first.
+        </div>
+      </div>
+    </ng-template>
+
+    <!-- EXIT SECTION -->
+    <div class="column">
+      <div class="card">
+        <h3>Vehicle Exit</h3>
+
+        <!-- EXIT FORM -->
+        <form (ngSubmit)="handleExit()" #exitForm="ngForm">
+          <label>Vehicle No:</label>
+          <input
+            [ngModel]="exitData.vehicleNumber"
+            (input)="formatVehicleNumber($event, 'EXIT')"
+            (focus)="clearMessages()"
+            name="eVNum"
+            placeholder="MH12AB1234"
+            required
+            [pattern]="vehiclePattern"
+          />
+
+          <button
+            type="submit"
+            class="exit-btn"
+            [disabled]="!exitForm.valid"
+            [style.opacity]="!exitForm.valid ? '0.5' : '1'"
+          >
+            Generate Bill
+          </button>
+        </form>
+
+         <!-- BILL RECEIPT DISPLAY -->
+        <div *ngIf="bill()" class="bill">
+          <h4 style="color: black;">🧾 BILL GENERATED</h4>
+          
+          <p><strong>Total To Pay: ₹{{ bill()?.totalAmount }}</strong></p>
+          
+          <hr style="border: 0; border-top: 1px dashed black; margin: 15px 0;">
+          
+          <!-- CALCULATION EXPLANATION -->
+          <div style="font-size: 0.9em; background: rgba(0,0,0,0.05); padding: 10px; border-radius: 4px;">
+             <p><strong>Calculation Logic:</strong></p>
+             <p>Base Price: ₹{{bill()?.basePricePerHour}}/hr</p>
+             <p>Duration: {{bill()?.duration}} mins 
+                <span *ngIf="bill()?.duration! > 30"> (Including Free 30 minutes)</span>
+             </p>
+             
+             <!-- Only show billing formula if amount > 0 -->
+             <div *ngIf="bill()?.totalAmount! > 0; else freeParking">
+                 <p>Billable Hours: {{ bill()?.billableHours }} hrs</p>
+                 <p>Surge Multiplier: x{{ bill()?.occupancyMultiplier }} (Lot Occupancy)</p>
+                 <hr style="margin: 5px 0">
+                 <p><em>Formula: Hours x Base x Surge</em></p>
+                 <p><strong>{{ bill()?.billableHours }} * {{ bill()?.basePricePerHour }} * {{ bill()?.occupancyMultiplier }} = ₹{{ bill()?.totalAmount }}</strong></p>
+             </div>
+             
+             <ng-template #freeParking>
+                 <p><strong>Status: FREE (Under 30 mins)</strong></p>
+             </ng-template>
+          </div>
+
+          
+          <p style="font-size: 0.8em; color: #666;">
+            Entry Time: {{ bill()?.entryTime | date:'medium' }}
+          </p>
+          <p style="font-size: 0.8em; color: #666;">
+            Exit Time: {{ bill()?.exitTime | date:'medium' }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

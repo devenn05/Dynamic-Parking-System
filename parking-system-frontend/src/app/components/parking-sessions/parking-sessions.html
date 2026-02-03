@@ -1,0 +1,125 @@
+<div class="container">
+  <h2>Parking Sessions</h2>
+  
+  <!-- CONTROLS ROW: Filters and Dropdown -->
+  <div class="card" style="display: flex; gap: 20px; align-items: center; padding: 15px;">
+    
+    <!-- 1. Lot Filter -->
+    <div style="flex: 1;">
+      <label><strong>Lot: </strong></label>
+      <select [ngModel]="selectedLotId()" (ngModelChange)="selectedLotId.set($event); loadData()">
+        <option [ngValue]="null">-- Show All Lots --</option>
+        <option *ngFor="let lot of lots()" [value]="lot.id">{{ lot.name }}</option>
+      </select>
+    </div>
+
+    <!-- 2. Vehicle Search -->
+    <div style="flex: 1;">
+       <label><strong>Search Vehicle: </strong></label>
+       <input type="text" 
+              [ngModel]="searchTerm()" 
+              (ngModelChange)="searchTerm.set($event)" 
+              placeholder="e.g. MH-12..." 
+              style="margin-bottom: 0;"> 
+    </div>
+
+    <!-- 3. Date Filter -->
+    <div style="flex: 1;">
+        <label><strong>Filter Date: </strong></label>
+        <input type="date" 
+               [ngModel]="searchDate()" 
+               (ngModelChange)="searchDate.set($event)"
+               style="margin-bottom: 0;">
+    </div>
+    
+    <!-- 4. Reset Button -->
+    <button (click)="searchTerm.set(''); searchDate.set('')" style="background: grey; font-size: 12px;">
+      Clear Filters
+    </button>
+  </div>
+
+  <div class="tabs" style="margin-top: 20px;">
+    <button (click)="view.set('ACTIVE')" [class.active]="view() === 'ACTIVE'">Current Active Vehicles</button>
+    <button (click)="view.set('HISTORY')" [class.active]="view() === 'HISTORY'">History (All)</button>
+  </div>
+
+  <!-- TABLE 1: ACTIVE SESSIONS -->
+  <table style="border: 1" *ngIf="view() === 'ACTIVE'">
+    <thead>
+      <tr>
+        <th>Vehicle</th>
+        <th>Vehicle Type</th>
+        <th *ngIf="!selectedLotId()">Parking Lot</th> 
+        <th>Slot</th>
+        <th>Entry Time</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- [CHANGED] Loop over filteredActiveSessions instead of activeSession() -->
+      <tr *ngFor="let s of filteredActiveSessions">
+        <td>{{ s.vehicleNumber }}</td>
+        <td>{{ s.vehicleType }}</td>
+        <td *ngIf="!selectedLotId()">{{ s.parkingLotName }}</td>
+        <td>{{ s.slotNumber }}</td>
+        <td>{{ s.entryTime | date:'medium' }}</td>
+        <td style="text-align: center;">
+            <button 
+                (click)="onTerminate(s)" 
+                style="background-color: #dc3545; color: white; padding: 5px 10px; border: none; font-size: 12px; cursor: pointer;">
+                Terminate
+            </button>
+        </td>
+      </tr>
+      
+      <!-- Fallback if no results -->
+      <tr *ngIf="filteredActiveSessions.length === 0">
+        <td colspan="6" style="text-align: center; padding: 20px; color: grey;">
+           No vehicles match your search.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- TABLE 2: HISTORY SESSIONS -->
+  <table style="border: 1" *ngIf="view() === 'HISTORY'">
+    <thead>
+      <tr>
+        <th>Vehicle</th>
+        <th>Vehicle Type</th>
+        <th *ngIf="!selectedLotId()">Parking Lot</th>
+        <th>Slot</th>
+        <th>Entry</th>
+        <th>Exit</th>
+        <th>Bill</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- [CHANGED] Loop over filteredHistorySessions instead of historySession() -->
+      <tr *ngFor="let s of filteredHistorySessions">
+        <td>{{ s.vehicleNumber }}</td>
+        <td>{{ s.vehicleType }}</td>
+        <td *ngIf="!selectedLotId()">{{ s.parkingLotName }}</td>
+        <td>{{ s.slotNumber }}</td>
+        <td>{{ s.entryTime | date:'short' }}</td>
+        <td>{{ s.exitTime | date:'short' }}</td>
+        
+        <!-- Logic for Bill Column -->
+        <td [style.color]="s.totalAmount === 0 && s.status !== 'TERMINATED' ? 'green' : 'inherit'"
+            [style.fontWeight]="s.totalAmount === 0 && s.status !== 'TERMINATED' ? 'bold' : 'normal'">
+            {{ s.totalAmount === 0 ? (s.status === 'TERMINATED' ? '-' : 'FREE') : (s.totalAmount ? '₹' + s.totalAmount : '-') }}
+        </td>
+
+        <td>{{ s.status }}</td>
+      </tr>
+
+      <!-- Fallback if no results -->
+      <tr *ngIf="filteredHistorySessions.length === 0">
+        <td colspan="8" style="text-align: center; padding: 20px; color: grey;">
+           No history found for these filters.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

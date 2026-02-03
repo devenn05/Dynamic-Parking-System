@@ -1,0 +1,31 @@
+# =========================================
+# Generic Files & Folders
+# =========================================
+.DS_Store
+*.log
+.idea/
+.vscode/
+
+# =========================================
+# Java / Maven Backend
+# =========================================
+/parking-system-backend/target/
+/parking-system-backend/pom.xml.tag
+/parking-system-backend/pom.xml.releaseBackup
+/parking-system-backend/pom.xml.versionsBackup
+/parking-system-backend/pom.xml.next
+/parking-system-backend/src/main/resources/application.properties
+/parking-system-backend/release.properties
+/parking-system-backend/dependency-reduced-pom.xml
+/parking-system-backend/buildNumber.properties
+/parking-system-backend/.mvn/
+/parking-system-backend/*.iml
+
+# =========================================
+# Node / Angular Frontend
+# =========================================
+/parking-system-frontend/node_modules/
+/parking-system-frontend/dist/
+/parking-system-frontend/.angular/
+/parking-system-frontend/npm-debug.log*
+/parking-system-frontend/coverage/
