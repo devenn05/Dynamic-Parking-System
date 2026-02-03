@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ParkingService } from '../../services/parking';
 import { ParkingLot } from '../../models/models.interface';
+import { PLATFORM_ID, Inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 /**
  * Parking Lot List Component
@@ -38,10 +40,10 @@ export class ParkingLotList implements OnInit {
     basePricePerHour: null as any
   };
 
-  constructor(private parkingService: ParkingService) {}
+  constructor(private parkingService: ParkingService, @Inject(PLATFORM_ID) private platformId: Object) {}
 
   ngOnInit(): void {
-    this.loadLots();
+     if (isPlatformBrowser(this.platformId)){this.loadLots();}
   }
 
   // Fetches the latest list of lots from the API. 

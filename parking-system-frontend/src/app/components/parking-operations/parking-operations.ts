@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ParkingService } from '../../services/parking';
 import { EntryRequest, ExitRequest, ParkingTicket, Bill, ParkingLot } from '../../models/models.interface';
+import { PLATFORM_ID, Inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-parking-operations',
@@ -24,10 +26,10 @@ export class ParkingOperations implements OnInit {
 
   private messageTimer: any;
 
-  constructor(private parkingService: ParkingService) {}
+  constructor(private parkingService: ParkingService, @Inject(PLATFORM_ID) private platformId: Object) {}
   
   ngOnInit(): void {
-    this.loadLots(); 
+     if (isPlatformBrowser(this.platformId)){this.loadLots();} 
   }
 
   loadLots(): void {

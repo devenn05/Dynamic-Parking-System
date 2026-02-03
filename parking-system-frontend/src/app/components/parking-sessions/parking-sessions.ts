@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ParkingService } from '../../services/parking';
 import { FormsModule } from '@angular/forms';
 import { ParkingSession, ParkingLot } from '../../models/models.interface';
+import { PLATFORM_ID, Inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 /**
  * Parking Sessions Component
@@ -43,14 +45,16 @@ export class ParkingSessions implements OnInit {
   // Selected Lot ID for filtering (null = Show All)
   selectedLotId = signal<number | null>(null)
 
-  constructor(private parkingService: ParkingService){}
+  constructor(private parkingService: ParkingService, @Inject(PLATFORM_ID) private platformId: Object){}
 
   ngOnInit(): void {
-    // 1. Fetch Lots first to populate the dropdown
+     if (isPlatformBrowser(this.platformId)){
+          // 1. Fetch Lots first to populate the dropdown
     this.parkingService.getAllLots().subscribe(data => {
       this.lots.set(data);
       this.loadData();
     });
+     }
   }
 
   loadData(){
