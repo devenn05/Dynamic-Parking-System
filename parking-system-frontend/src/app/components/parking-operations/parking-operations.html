@@ -13,18 +13,19 @@
         <h3>Vehicle Entry</h3>
 
          <!-- ENTRY FORM -->
-        <form (ngSubmit)="handleEntry()" #entryForm="ngForm">
-          <label>Vehicle No (Strictly follow the pattern: MH12AB1234 or 22BH1234AA) </label>
+        <form (ngSubmit)="handleEntry(entryForm)" #entryForm="ngForm">
+          <label>Vehicle No (Standard MH12AB1234 or BH 22BH1234AA) </label>
           <input
-            [ngModel]="entryData.vehicleNumber"
-            (input)="formatVehicleNumber($event, 'ENTRY')" 
+            [(ngModel)]="entryData.vehicleNumber"
+            (ngModelChange)="formatVehicleNumber('ENTRY')" 
             (focus)="clearMessages()"
             name="vNum"
             placeholder="MH12AB1234"
             required
             [pattern]="vehiclePattern" 
           />
-          <!-- Visual Hint if pattern doesn't match -->
+          
+           <!-- Visual error: only shows if invalid AND touched -->
            <div *ngIf="entryForm.controls['vNum']?.invalid && entryForm.controls['vNum']?.touched" style="color: red; font-size: 0.8em;">
              Invalid Format. Standard or BH series only.
            </div>
@@ -88,11 +89,11 @@
         <h3>Vehicle Exit</h3>
 
         <!-- EXIT FORM -->
-        <form (ngSubmit)="handleExit()" #exitForm="ngForm">
+        <form (ngSubmit)="handleExit(exitForm)" #exitForm="ngForm">
           <label>Vehicle No:</label>
           <input
-            [ngModel]="exitData.vehicleNumber"
-            (input)="formatVehicleNumber($event, 'EXIT')"
+            [(ngModel)]="exitData.vehicleNumber"
+            (ngModelChange)="formatVehicleNumber('EXIT')"
             (focus)="clearMessages()"
             name="eVNum"
             placeholder="MH12AB1234"
