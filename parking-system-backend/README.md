@@ -6,7 +6,7 @@ This project is the backend service for a **Dynamic Pricing System for Parking L
 
 The core focus is on clean architecture and correct enforcement of business logic. Key features include:
 -   Creating, Updating, and managing multi-slot parking lots.
--   Handling vehicle entry and exit operations.
+-   Handling vehicleEntity entry and exit operations.
 -   Tracking real-time parking occupancy.
 -   Dynamically calculating parking charges based on duration and occupancy.
 -   Administrative tools to Force-Terminate stuck sessions.
@@ -59,7 +59,7 @@ The backend follows a stateless Controller-Service-Repository pattern:
 | Method | Endpoint                        | Description                               |
 | ------ | ------------------------------- | ----------------------------------------- |
 | `GET`  | `/api/sessions/active`          | Active vehicles (can filter by `lotId`).  |
-| `GET`  | `/api/sessions/history`         | All vehicle logs (can filter by `lotId`). |
+| `GET`  | `/api/sessions/history`         | All vehicleEntity logs (can filter by `lotId`). |
 | `POST` | `/api/sessions/{id}/terminate`  | Force-close a session (Price set to 0.0). |
 
 

@@ -11,7 +11,7 @@ import lombok.Data;
  */
 
 @Data
-public class ExitRequest {
+public class ExitRequestDto {
 
     // The license plate number of the exiting vehicle.
     // Must correspond to a vehicle currently having an 'ACTIVE' session.

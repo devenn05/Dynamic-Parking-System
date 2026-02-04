@@ -1,9 +1,9 @@
 package com.project.parking_system.service;
 
-import com.project.parking_system.dto.ParkingSessionDTO;
-import com.project.parking_system.entity.ParkingSession;
-import com.project.parking_system.entity.ParkingSlot;
-import com.project.parking_system.entity.Vehicle;
+import com.project.parking_system.dto.ParkingSessionDto;
+import com.project.parking_system.entity.ParkingSessionEntity;
+import com.project.parking_system.entity.ParkingSlotEntity;
+import com.project.parking_system.entity.VehicleEntity;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,19 +16,19 @@ import java.util.Optional;
 public interface ParkingSessionService {
 
     // Help us find if the vehicle that is Given has any Active Session or not.
-    Optional<ParkingSession> findActiveSession(Vehicle vehicle);
+    Optional<ParkingSessionEntity> findActiveSession(VehicleEntity vehicleEntity);
 
     // Creates a new Session with Vehicle and Parking Slot Information.
-    ParkingSession createSession(Vehicle vehicle, ParkingSlot slot);
+    ParkingSessionEntity createSession(VehicleEntity vehicleEntity, ParkingSlotEntity slot);
 
     // Helps end the Active Session and Generate the bill.
-    void endSession(ParkingSession session, LocalDateTime exitTime, Double totalAmount);
+    void endSession(ParkingSessionEntity session, LocalDateTime exitTime, Double totalAmount);
 
     // To get all the Active Sessions
-    List<ParkingSessionDTO> getAllActiveSessions(Long lotId);
+    List<ParkingSessionDto> getAllActiveSessions(Long lotId);
 
     // To get all the Sessions ( BOTH ACTIVE and COMPLETED )
-    List<ParkingSessionDTO> getAllSessions(Long lotId);
+    List<ParkingSessionDto> getAllSessions(Long lotId);
 
     // To Terminate the Session
     void terminateSession(Long sessionId);

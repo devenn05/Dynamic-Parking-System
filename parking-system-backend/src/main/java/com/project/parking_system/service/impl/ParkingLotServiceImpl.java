@@ -1,10 +1,10 @@
 package com.project.parking_system.service.impl;
 
-import com.project.parking_system.dto.ParkingLotDTO;
-import com.project.parking_system.dto.ParkingLotRequest;
-import com.project.parking_system.entity.ParkingLot;
-import com.project.parking_system.entity.ParkingSlot;
-import com.project.parking_system.enums.SlotStatus;
+import com.project.parking_system.dto.ParkingLotDto;
+import com.project.parking_system.dto.ParkingLotRequestDto;
+import com.project.parking_system.entity.ParkingLotEntity;
+import com.project.parking_system.entity.ParkingSlotEntity;
+import com.project.parking_system.enums.SlotStatusEnum;
 import com.project.parking_system.exception.BusinessException;
 import com.project.parking_system.exception.ResourceNotFoundException;
 import com.project.parking_system.mapper.ParkingLotMapper;
@@ -37,20 +37,20 @@ public class ParkingLotServiceImpl implements ParkingLotService {
     //Transactional: Ensures that both the Lot and its Slots are saved. If slot generation fails, the Lot is rolled back.
     @Override
     @Transactional
-    public ParkingLotDTO createParkingLot(ParkingLotRequest request) {
+    public ParkingLotDto createParkingLot(ParkingLotRequestDto request) {
 
         // 1. Convert the incoming DTO into an entity we can save.
-        ParkingLot parkingLot = ParkingLotMapper.toEntity(request);
+        ParkingLotEntity parkingLotEntity = ParkingLotMapper.toEntity(request);
 
         // 2. Save the new ParkingLot entity to the database.
         // After this line, the 'savedLot' object will have its 'id' and 'createdAt' fields populated by the database.
-        ParkingLot savedLot = parkingLotRepository.save(parkingLot);
+        ParkingLotEntity savedLot = parkingLotRepository.save(parkingLotEntity);
 
         // 3. Use the parkingSlotService to generate the data for that lot and then store it in that Lot id.
         parkingSlotService.createAndSaveSlotsForLot(savedLot);
 
         // 4. // Return DTO (Available = Total at start)
-        ParkingLotDTO dto = ParkingLotMapper.toDto(savedLot);
+        ParkingLotDto dto = ParkingLotMapper.toDto(savedLot);
 
         dto.setAvailableSlots(savedLot.getTotalSlots());
 
@@ -58,16 +58,16 @@ public class ParkingLotServiceImpl implements ParkingLotService {
     }
 
     @Override
-    public List<ParkingLotDTO> getAllParkingLots() {
+    public List<ParkingLotDto> getAllParkingLots() {
 
         // 1. Fetch all entities from DB
-        List<ParkingLot> lots = parkingLotRepository.findAll();
+        List<ParkingLotEntity> lots = parkingLotRepository.findAll();
 
         // 2. Convert List<Entity> -> List<DTO> using Java Streams
         return lots.stream().map(lot -> {
-            ParkingLotDTO dto = ParkingLotMapper.toDto(lot);
+            ParkingLotDto dto = ParkingLotMapper.toDto(lot);
             // Calculate available slots dynamically
-            long available = parkingSlotRepository.countByParkingLotIdAndSlotStatus(lot.getId(), SlotStatus.AVAILABLE);
+            long available = parkingSlotRepository.countByParkingLotIdAndSlotStatus(lot.getId(), SlotStatusEnum.AVAILABLE);
             dto.setAvailableSlots((int) available);
             return dto;
         }).toList();
@@ -75,16 +75,16 @@ public class ParkingLotServiceImpl implements ParkingLotService {
     }
 
     @Override
-    public ParkingLotDTO getParkingLotById(Long id) {
+    public ParkingLotDto getParkingLotById(Long id) {
 
         // 1. Try to find the lot. If not found, throw our custom exception.
-        ParkingLot currentLot = parkingLotRepository.findById(id).orElseThrow(
+        ParkingLotEntity currentLot = parkingLotRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Parking lot not found by id " + id)
         );
-        ParkingLotDTO dto = ParkingLotMapper.toDto(currentLot);
+        ParkingLotDto dto = ParkingLotMapper.toDto(currentLot);
 
         // 2. Calculate dynamic availability
-        long available = parkingSlotRepository.countByParkingLotIdAndSlotStatus(id, SlotStatus.AVAILABLE);
+        long available = parkingSlotRepository.countByParkingLotIdAndSlotStatus(id, SlotStatusEnum.AVAILABLE);
         dto.setAvailableSlots((int) available);
         return dto;
     }
@@ -94,10 +94,10 @@ public class ParkingLotServiceImpl implements ParkingLotService {
      * CRITICAL BUSINESS LOGIC: Cannot reduce the number of slots for a parking lot.
      */
     @Override
-    public ParkingLotDTO updateParkingLot(Long id, ParkingLotRequest request){
+    public ParkingLotDto updateParkingLot(Long id, ParkingLotRequestDto request){
 
     // 1. Find the lot that is coming from the frontend
-    ParkingLot currentLot = parkingLotRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Lot not found"));
+    ParkingLotEntity currentLot = parkingLotRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Lot not found"));
 
     // -----Assumption: Lot size cannot be reduced
     if (request.getTotalSlots() < currentLot.getTotalSlots()) throw new BusinessException("Lot size cannot be reduced");
@@ -107,12 +107,12 @@ public class ParkingLotServiceImpl implements ParkingLotService {
             int startSlot = currentLot.getTotalSlots() + 1;
             int endSlot = request.getTotalSlots();
 
-            List<ParkingSlot> newSlots = new ArrayList<>();
+            List<ParkingSlotEntity> newSlots = new ArrayList<>();
             for (int i = startSlot; i <= endSlot; i++) {
-                newSlots.add(ParkingSlot.builder()
+                newSlots.add(ParkingSlotEntity.builder()
                         .slotNumber(i)
-                        .slotStatus(SlotStatus.AVAILABLE)
-                        .parkingLot(currentLot)
+                        .slotStatusEnum(SlotStatusEnum.AVAILABLE)
+                        .parkingLotEntity(currentLot)
                         .build());
             }
             parkingSlotRepository.saveAll(newSlots);
@@ -125,11 +125,11 @@ public class ParkingLotServiceImpl implements ParkingLotService {
         currentLot.setTotalSlots(request.getTotalSlots());
 
         // 5. Save & Convert
-        ParkingLot savedLot = parkingLotRepository.save(currentLot);
+        ParkingLotEntity savedLot = parkingLotRepository.save(currentLot);
 
         // Recalculate available slots
-        ParkingLotDTO dto = ParkingLotMapper.toDto(savedLot);
-        long available = parkingSlotRepository.countByParkingLotIdAndSlotStatus(savedLot.getId(), SlotStatus.AVAILABLE);
+        ParkingLotDto dto = ParkingLotMapper.toDto(savedLot);
+        long available = parkingSlotRepository.countByParkingLotIdAndSlotStatus(savedLot.getId(), SlotStatusEnum.AVAILABLE);
         dto.setAvailableSlots((int) available);
 
         return dto;

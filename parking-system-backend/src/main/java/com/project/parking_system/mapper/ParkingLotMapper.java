@@ -1,9 +1,9 @@
 package com.project.parking_system.mapper;
 
 
-import com.project.parking_system.dto.ParkingLotDTO;
-import com.project.parking_system.dto.ParkingLotRequest;
-import com.project.parking_system.entity.ParkingLot;
+import com.project.parking_system.dto.ParkingLotDto;
+import com.project.parking_system.dto.ParkingLotRequestDto;
+import com.project.parking_system.entity.ParkingLotEntity;
 import org.springframework.stereotype.Component;
 
 /**
@@ -19,24 +19,24 @@ public class ParkingLotMapper {
     /**
      * Converts a ParkingLot entity (from the database) into a ParkingLotDTO (to send to the user).
      */
-    public static ParkingLotDTO toDto(ParkingLot parkingLot){
-        return ParkingLotDTO.builder()
-                .id(parkingLot.getId())
-                .name(parkingLot.getName())
-                .location(parkingLot.getLocation())
-                .totalSlots(parkingLot.getTotalSlots())
-                .basePricePerHour(parkingLot.getBasePricePerHour())
-                .createdAt(parkingLot.getCreatedAt()).build();
+    public static ParkingLotDto toDto(ParkingLotEntity parkingLotEntity){
+        return ParkingLotDto.builder()
+                .id(parkingLotEntity.getId())
+                .name(parkingLotEntity.getName())
+                .location(parkingLotEntity.getLocation())
+                .totalSlots(parkingLotEntity.getTotalSlots())
+                .basePricePerHour(parkingLotEntity.getBasePricePerHour())
+                .createdAt(parkingLotEntity.getCreatedAt()).build();
     }
 
     /**
      * Converts a ParkingLotRequest (from the user) into a ParkingLot entity (to be saved in the database).
      */
-    public static ParkingLot toEntity(ParkingLotRequest parkingLotRequest){
-        return ParkingLot.builder()
-                .name(parkingLotRequest.getName())
-                .location(parkingLotRequest.getLocation())
-                .totalSlots(parkingLotRequest.getTotalSlots())
-                .basePricePerHour(parkingLotRequest.getBasePricePerHour()).build();
+    public static ParkingLotEntity toEntity(ParkingLotRequestDto parkingLotRequestDTO){
+        return ParkingLotEntity.builder()
+                .name(parkingLotRequestDTO.getName())
+                .location(parkingLotRequestDTO.getLocation())
+                .totalSlots(parkingLotRequestDTO.getTotalSlots())
+                .basePricePerHour(parkingLotRequestDTO.getBasePricePerHour()).build();
     }
 }

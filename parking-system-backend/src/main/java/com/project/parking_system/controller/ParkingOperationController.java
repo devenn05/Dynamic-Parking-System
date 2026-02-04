@@ -1,9 +1,9 @@
 package com.project.parking_system.controller;
 
-import com.project.parking_system.dto.BillDTO;
-import com.project.parking_system.dto.EntryRequest;
-import com.project.parking_system.dto.ExitRequest;
-import com.project.parking_system.dto.ParkingTicketDTO;
+import com.project.parking_system.dto.BillDto;
+import com.project.parking_system.dto.EntryRequestDto;
+import com.project.parking_system.dto.ExitRequestDto;
+import com.project.parking_system.dto.ParkingTicketDto;
 import com.project.parking_system.service.ParkingOperationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,13 +26,13 @@ public class ParkingOperationController {
 
     // 1. Entry point for Vehicle -> POST http://localhost:8080/api/parking/entry
     @PostMapping("/entry")
-    ResponseEntity<ParkingTicketDTO> enterVehicle(@Valid @RequestBody EntryRequest request){
+    ResponseEntity<ParkingTicketDto> enterVehicle(@Valid @RequestBody EntryRequestDto request){
        return ResponseEntity.ok(parkingOperationService.enterVehicle(request));
     }
 
     // 1. Exit point for Vehicle -> POST http://localhost:8080/api/parking/exit
     @PostMapping("/exit")
-    public ResponseEntity<BillDTO> exitVehicle(@Valid @RequestBody ExitRequest request) {
+    public ResponseEntity<BillDto> exitVehicle(@Valid @RequestBody ExitRequestDto request) {
         return ResponseEntity.ok(parkingOperationService.exitVehicle(request));
     }
 }

@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
-public class BillDTO {
+public class BillDto {
     private Long sessionId;
     private String vehicleNumber;
     private LocalDateTime entryTime;

@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
-public class ParkingLotDTO {
+public class ParkingLotDto {
     private Long id;
     private String name;
     private String location;

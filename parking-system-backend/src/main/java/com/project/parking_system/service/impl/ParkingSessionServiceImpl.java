@@ -1,10 +1,10 @@
 package com.project.parking_system.service.impl;
 
-import com.project.parking_system.dto.ParkingSessionDTO;
-import com.project.parking_system.entity.ParkingSession;
-import com.project.parking_system.entity.ParkingSlot;
-import com.project.parking_system.entity.Vehicle;
-import com.project.parking_system.enums.SessionStatus;
+import com.project.parking_system.dto.ParkingSessionDto;
+import com.project.parking_system.entity.ParkingSessionEntity;
+import com.project.parking_system.entity.ParkingSlotEntity;
+import com.project.parking_system.entity.VehicleEntity;
+import com.project.parking_system.enums.SessionStatusEnum;
 import com.project.parking_system.exception.ResourceNotFoundException;
 import com.project.parking_system.mapper.ParkingSessionMapper;
 import com.project.parking_system.repository.ParkingSessionRepository;
@@ -32,18 +32,18 @@ public class ParkingSessionServiceImpl implements ParkingSessionService {
 
     // Returns active session or Null by vehicleId
     @Override
-    public Optional<ParkingSession> findActiveSession(Vehicle vehicle){
-        return parkingSessionRepository.findByVehicleIdAndSessionStatus(vehicle.getId(), SessionStatus.ACTIVE);
+    public Optional<ParkingSessionEntity> findActiveSession(VehicleEntity vehicleEntity){
+        return parkingSessionRepository.findByVehicleIdAndSessionStatus(vehicleEntity.getId(), SessionStatusEnum.ACTIVE);
     }
 
     // Creates a new Session in our DB
     @Override
-    public ParkingSession createSession(Vehicle vehicle, ParkingSlot slot){
-        ParkingSession currentSession = ParkingSession.builder()
-                .vehicle(vehicle)
-                .parkingSlot(slot)
+    public ParkingSessionEntity createSession(VehicleEntity vehicleEntity, ParkingSlotEntity slot){
+        ParkingSessionEntity currentSession = ParkingSessionEntity.builder()
+                .vehicleEntity(vehicleEntity)
+                .parkingSlotEntity(slot)
                 .entryTime(LocalDateTime.now())
-                .sessionStatus(SessionStatus.ACTIVE)
+                .sessionStatusEnum(SessionStatusEnum.ACTIVE)
                 .build();
 
         // Saves the currentSession that we created into DB.
@@ -51,7 +51,7 @@ public class ParkingSessionServiceImpl implements ParkingSessionService {
     }
 
     @Override
-    public void endSession(ParkingSession session, LocalDateTime exitTime, Double totalAmount){
+    public void endSession(ParkingSessionEntity session, LocalDateTime exitTime, Double totalAmount){
         // Log the exit time
         session.setExitTime(exitTime);
 
@@ -59,7 +59,7 @@ public class ParkingSessionServiceImpl implements ParkingSessionService {
         session.setTotalAmount(totalAmount);
 
         // Change the Session Status from Active to Completed
-        session.setSessionStatus(SessionStatus.COMPLETED);
+        session.setSessionStatusEnum(SessionStatusEnum.COMPLETED);
 
         // Save the Session.
         parkingSessionRepository.save(session);
@@ -67,14 +67,14 @@ public class ParkingSessionServiceImpl implements ParkingSessionService {
 
     // Get Parking Sessions by lotId and then find all the Active Session and Give the ParkingSessionDTO for frontend.
     @Override
-    public List<ParkingSessionDTO> getAllActiveSessions(Long lotId) {
-        List<ParkingSession> sessions;
+    public List<ParkingSessionDto> getAllActiveSessions(Long lotId) {
+        List<ParkingSessionEntity> sessions;
 
         // If a specific Lot ID is provided, filter by that Lot AND Status = ACTIVE.
-        if (lotId != null) sessions = parkingSessionRepository.findByParkingSlotParkingLotIdAndSessionStatus(lotId, SessionStatus.ACTIVE);
+        if (lotId != null) sessions = parkingSessionRepository.findByParkingSlotParkingLotIdAndSessionStatus(lotId, SessionStatusEnum.ACTIVE);
 
         // If no Lot ID is provided, fetch ALL active vehicles across all parking lots.
-        else  sessions = parkingSessionRepository.findBySessionStatus(SessionStatus.ACTIVE);
+        else  sessions = parkingSessionRepository.findBySessionStatus(SessionStatusEnum.ACTIVE);
 
         //Convert the database entities to DTOs using the helper method
         return sessions.stream().map(parkingSessionMapper::convertToSessionDTO).toList();
@@ -82,8 +82,8 @@ public class ParkingSessionServiceImpl implements ParkingSessionService {
 
     // Get all the Sessions that are related the LotID
     @Override
-    public List<ParkingSessionDTO> getAllSessions(Long lotId){
-        List<ParkingSession> sessions;
+    public List<ParkingSessionDto> getAllSessions(Long lotId){
+        List<ParkingSessionEntity> sessions;
 
         // If a specific Lot ID is provided, fetch entire history for that lot.
         if (lotId != null) sessions = parkingSessionRepository.findByParkingSlotParkingLotId(lotId);
@@ -106,20 +106,20 @@ public class ParkingSessionServiceImpl implements ParkingSessionService {
     @Override
     public void terminateSession(Long sessionId){
         // Find if the Session is present with the Incoming SessionId
-        ParkingSession currentSession = parkingSessionRepository.findById(sessionId).orElseThrow(() -> new ResourceNotFoundException("No Session Found with this Session Id."));
+        ParkingSessionEntity currentSession = parkingSessionRepository.findById(sessionId).orElseThrow(() -> new ResourceNotFoundException("No Session Found with this Session Id."));
 
         // Checks if the session is Active or not to b terminated.
-        if (currentSession.getSessionStatus() != SessionStatus.ACTIVE){
+        if (currentSession.getSessionStatusEnum() != SessionStatusEnum.ACTIVE){
             throw new ResourceNotFoundException("Session is Not active to be Terminated.");
         }
 
         // Marks the Slot Available from Occupied.
-        Long slotId = currentSession.getParkingSlot().getId();
+        Long slotId = currentSession.getParkingSlotEntity().getId();
         parkingSlotService.markSlotAsAvailable(slotId);
 
         // 4. Close the Session
         currentSession.setExitTime(LocalDateTime.now());
-        currentSession.setSessionStatus(SessionStatus.TERMINATED);
+        currentSession.setSessionStatusEnum(SessionStatusEnum.TERMINATED);
 
         // We set it as 0.0 for administrative fix.
         currentSession.setTotalAmount(0.0);

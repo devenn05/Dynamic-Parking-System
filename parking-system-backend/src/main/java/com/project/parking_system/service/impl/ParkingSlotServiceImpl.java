@@ -1,9 +1,9 @@
 package com.project.parking_system.service.impl;
 
-import com.project.parking_system.dto.ParkingSlotDTO;
-import com.project.parking_system.entity.ParkingLot;
-import com.project.parking_system.entity.ParkingSlot;
-import com.project.parking_system.enums.SlotStatus;
+import com.project.parking_system.dto.ParkingSlotDto;
+import com.project.parking_system.entity.ParkingLotEntity;
+import com.project.parking_system.entity.ParkingSlotEntity;
+import com.project.parking_system.enums.SlotStatusEnum;
 import com.project.parking_system.exception.BusinessException;
 import com.project.parking_system.exception.ResourceNotFoundException;
 import com.project.parking_system.repository.ParkingSlotRepository;
@@ -27,17 +27,17 @@ public class ParkingSlotServiceImpl implements ParkingSlotService {
     private final ParkingSlotRepository parkingSlotRepository;
 
     @Override
-    public void createAndSaveSlotsForLot(ParkingLot parkingLot){
+    public void createAndSaveSlotsForLot(ParkingLotEntity parkingLotEntity){
 
         // Create an empty list to hold our new slot objects.
-        List<ParkingSlot> slots = new ArrayList<>();
+        List<ParkingSlotEntity> slots = new ArrayList<>();
 
         // For each number, create a new ParkingSlot object.
-        for (int i = 1; i <= parkingLot.getTotalSlots(); i++){
-            ParkingSlot newSlot = ParkingSlot.builder()
+        for (int i = 1; i <= parkingLotEntity.getTotalSlots(); i++){
+            ParkingSlotEntity newSlot = ParkingSlotEntity.builder()
                     .slotNumber(i)                          // Set the slot number.
-                    .slotStatus(SlotStatus.AVAILABLE)       // All new slots are initially available.
-                    .parkingLot(parkingLot)                 // Link it to the parent parking lot.
+                    .slotStatusEnum(SlotStatusEnum.AVAILABLE)       // All new slots are initially available.
+                    .parkingLotEntity(parkingLotEntity)                 // Link it to the parent parking lot.
                     .build();
 
             slots.add(newSlot);
@@ -47,25 +47,25 @@ public class ParkingSlotServiceImpl implements ParkingSlotService {
     }
 
     @Override
-    public List<ParkingSlotDTO> getSlotsByParkingLotId(Long parkingLotId){
+    public List<ParkingSlotDto> getSlotsByParkingLotId(Long parkingLotId){
 
         // 1. Fetch slots from DB using the method you defined in your Repository
-        List<ParkingSlot> currSlots = parkingSlotRepository.findByParkingLotIdOrderBySlotNumberAsc(parkingLotId);
+        List<ParkingSlotEntity> currSlots = parkingSlotRepository.findByParkingLotIdOrderBySlotNumberAsc(parkingLotId);
 
         // 2. Convert to DTO
-        return currSlots.stream().map(s -> ParkingSlotDTO.builder()
+        return currSlots.stream().map(s -> ParkingSlotDto.builder()
                                                     .id(s.getId())
                                                     .slotNumber(s.getSlotNumber())
-                                                    .status(s.getSlotStatus())
+                                                    .status(s.getSlotStatusEnum())
                                                     .build()).toList();
     }
 
     // The core slot allocation logic.
     @Override
-    public ParkingSlot findFirstAvailableSlot(Long parkingLotId){
+    public ParkingSlotEntity findFirstAvailableSlot(Long parkingLotId){
         // Fetch all available slots for this lot, ordered by number (1, 2, 3...)
-        List<ParkingSlot> availableSlots = parkingSlotRepository
-                .findByParkingLotIdAndSlotStatusOrderBySlotNumberAsc(parkingLotId, SlotStatus.AVAILABLE);
+        List<ParkingSlotEntity> availableSlots = parkingSlotRepository
+                .findByParkingLotIdAndSlotStatusOrderBySlotNumberAsc(parkingLotId, SlotStatusEnum.AVAILABLE);
 
         // If it is empty then that means there are no empty slots available in our current Parking lot.
         if (availableSlots.isEmpty()){
@@ -78,10 +78,10 @@ public class ParkingSlotServiceImpl implements ParkingSlotService {
     @Override
     public void markSlotAsOccupied(Long slotId){
         // See to it that the Current Slot ID that is past is present or not.
-        ParkingSlot currentSlot = parkingSlotRepository.findById(slotId).orElseThrow(() -> new ResourceNotFoundException("Slot not found"));
+        ParkingSlotEntity currentSlot = parkingSlotRepository.findById(slotId).orElseThrow(() -> new ResourceNotFoundException("Slot not found"));
 
         // If present then this will switch the status from Available to Occupied.
-        currentSlot.setSlotStatus(SlotStatus.OCCUPIED);
+        currentSlot.setSlotStatusEnum(SlotStatusEnum.OCCUPIED);
 
         // Save that Slot.
         parkingSlotRepository.save(currentSlot);
@@ -91,10 +91,10 @@ public class ParkingSlotServiceImpl implements ParkingSlotService {
     @Override
     public void markSlotAsAvailable(Long slotId){
         // See to it that the Current Slot ID that is past is present or not.
-        ParkingSlot currentSlot = parkingSlotRepository.findById(slotId).orElseThrow(() -> new ResourceNotFoundException("Invalid Slot Id"));
+        ParkingSlotEntity currentSlot = parkingSlotRepository.findById(slotId).orElseThrow(() -> new ResourceNotFoundException("Invalid Slot Id"));
 
         // If present then this will switch the status from Occupied to Available.
-        currentSlot.setSlotStatus(SlotStatus.AVAILABLE);
+        currentSlot.setSlotStatusEnum(SlotStatusEnum.AVAILABLE);
 
         // Save that Slot.
         parkingSlotRepository.save(currentSlot);

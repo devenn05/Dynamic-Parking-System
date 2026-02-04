@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
-public class ApiErrorResponse {
+public class ApiErrorResponseDto {
     private LocalDateTime timestamp;
 
     // The HTTP Status code (e.g., 400, 404, 500)

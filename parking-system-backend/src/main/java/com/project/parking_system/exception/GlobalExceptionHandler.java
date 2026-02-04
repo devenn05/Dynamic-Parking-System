@@ -1,6 +1,6 @@
 package com.project.parking_system.exception;
 
-import com.project.parking_system.dto.ApiErrorResponse;
+import com.project.parking_system.dto.ApiErrorResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -27,8 +27,8 @@ public class GlobalExceptionHandler {
     // 1. Handle Resource Not Found (404)
     // Triggered by: ResourceNotFoundException.
     @ExceptionHandler(ResourceNotFoundException.class)
-    ResponseEntity<ApiErrorResponse> handleResourcesException(ResourceNotFoundException e, HttpServletRequest request){
-        ApiErrorResponse error =  ApiErrorResponse.builder()
+    ResponseEntity<ApiErrorResponseDto> handleResourcesException(ResourceNotFoundException e, HttpServletRequest request){
+        ApiErrorResponseDto error =  ApiErrorResponseDto.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.NOT_FOUND.value())
                 .error("Resources Not Found")
@@ -42,8 +42,8 @@ public class GlobalExceptionHandler {
     // 2. To handle Business Rule Violations (409 Conflict)
     // Triggered by: BusinessException (e.g., "Vehicle already has active session").
     @ExceptionHandler(BusinessException.class)
-    ResponseEntity<ApiErrorResponse> handleBusinessException(BusinessException e, HttpServletRequest request){
-        ApiErrorResponse error = ApiErrorResponse.builder()
+    ResponseEntity<ApiErrorResponseDto> handleBusinessException(BusinessException e, HttpServletRequest request){
+        ApiErrorResponseDto error = ApiErrorResponseDto.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.CONFLICT.value())
                 .error("Business Rule Violation")
@@ -57,8 +57,8 @@ public class GlobalExceptionHandler {
     // Handles Optimistic Locking Failures
     // Triggered when @Version check fails during database commit.
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
-    ResponseEntity<ApiErrorResponse> handleOptimisticLockException(ObjectOptimisticLockingFailureException e, HttpServletRequest request) {
-        ApiErrorResponse error = ApiErrorResponse.builder()
+    ResponseEntity<ApiErrorResponseDto> handleOptimisticLockException(ObjectOptimisticLockingFailureException e, HttpServletRequest request) {
+        ApiErrorResponseDto error = ApiErrorResponseDto.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.CONFLICT.value())
                 .error("Concurrent Modification")
@@ -71,8 +71,8 @@ public class GlobalExceptionHandler {
     // Handle Unique Constraint Violations (Duplicate Name)
     // Triggered by: SQL Constraint violations (e.g., creating a lot with an existing name).
     @ExceptionHandler(DataIntegrityViolationException.class)
-    ResponseEntity<ApiErrorResponse> handleDataIntegrityException(DataIntegrityViolationException e, HttpServletRequest request){
-        ApiErrorResponse error = ApiErrorResponse.builder()
+    ResponseEntity<ApiErrorResponseDto> handleDataIntegrityException(DataIntegrityViolationException e, HttpServletRequest request){
+        ApiErrorResponseDto error = ApiErrorResponseDto.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.CONFLICT.value())
                 .error("Data Conflict")
@@ -86,7 +86,7 @@ public class GlobalExceptionHandler {
     // 3. Handles Bad Request (400)
     // Triggered if by any case @Valid fails on DTOs (e.g., "Total Slots cannot be empty").
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    ResponseEntity<ApiErrorResponse> handleBadRequestException(MethodArgumentNotValidException e, HttpServletRequest request){
+    ResponseEntity<ApiErrorResponseDto> handleBadRequestException(MethodArgumentNotValidException e, HttpServletRequest request){
 
         // Collect all validation error messages (e.g., "Name cannot be empty")
         Map<String, String> errors = new HashMap<>();
@@ -94,7 +94,7 @@ public class GlobalExceptionHandler {
                 errors.put(error.getField(), error.getDefaultMessage())
         );
 
-        ApiErrorResponse error = ApiErrorResponse.builder()
+        ApiErrorResponseDto error = ApiErrorResponseDto.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error("Bad Request")
@@ -109,8 +109,8 @@ public class GlobalExceptionHandler {
     // 4. Handles 500 - General/Unexpected Errors.
     // Fallback for any unhandled runtime exceptions.
     @ExceptionHandler(Exception.class)
-    ResponseEntity<ApiErrorResponse> handleGlobalException(Exception e, HttpServletRequest request){
-        ApiErrorResponse error = ApiErrorResponse.builder()
+    ResponseEntity<ApiErrorResponseDto> handleGlobalException(Exception e, HttpServletRequest request){
+        ApiErrorResponseDto error = ApiErrorResponseDto.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .error("Internal Server Error")

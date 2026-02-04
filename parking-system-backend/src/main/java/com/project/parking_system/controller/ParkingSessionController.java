@@ -1,6 +1,6 @@
 package com.project.parking_system.controller;
 
-import com.project.parking_system.dto.ParkingSessionDTO;
+import com.project.parking_system.dto.ParkingSessionDto;
 import com.project.parking_system.service.ParkingSessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,13 +23,13 @@ public class ParkingSessionController {
 
     // 1. To retrieve all the Active Sessions -> POST http://localhost:8080/api/sessions/active
     @GetMapping("/active")
-    ResponseEntity<List<ParkingSessionDTO>> getActiveSessions(@RequestParam(required = false) Long lotId){
+    ResponseEntity<List<ParkingSessionDto>> getActiveSessions(@RequestParam(required = false) Long lotId){
         return ResponseEntity.ok(parkingSessionService.getAllActiveSessions(lotId));
     }
 
     // 2. To retrieve all the Sessions irrespective of being ACTIVE/COMPLETED -> POST http://localhost:8080/api/sessions/history
     @GetMapping("/history")
-    ResponseEntity<List<ParkingSessionDTO>> getAllSessions(@RequestParam(required = false) Long lotId){
+    ResponseEntity<List<ParkingSessionDto>> getAllSessions(@RequestParam(required = false) Long lotId){
         return ResponseEntity.ok(parkingSessionService.getAllSessions(lotId));
     }
 

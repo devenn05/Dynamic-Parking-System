@@ -1,6 +1,6 @@
 package com.project.parking_system.repository;
 
-import com.project.parking_system.entity.ParkingLot;
+import com.project.parking_system.entity.ParkingLotEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -10,6 +10,6 @@ import org.springframework.stereotype.Repository;
  */
 
 @Repository
-public interface ParkingLotRepository extends JpaRepository<ParkingLot, Long> {
+public interface ParkingLotRepository extends JpaRepository<ParkingLotEntity, Long> {
 
 }

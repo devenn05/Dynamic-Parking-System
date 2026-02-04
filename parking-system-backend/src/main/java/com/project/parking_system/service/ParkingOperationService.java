@@ -1,9 +1,9 @@
 package com.project.parking_system.service;
 
-import com.project.parking_system.dto.BillDTO;
-import com.project.parking_system.dto.EntryRequest;
-import com.project.parking_system.dto.ExitRequest;
-import com.project.parking_system.dto.ParkingTicketDTO;
+import com.project.parking_system.dto.BillDto;
+import com.project.parking_system.dto.EntryRequestDto;
+import com.project.parking_system.dto.ExitRequestDto;
+import com.project.parking_system.dto.ParkingTicketDto;
 
 /**
  * Service interface defining the High-Level flow of the application.
@@ -13,9 +13,9 @@ import com.project.parking_system.dto.ParkingTicketDTO;
 public interface ParkingOperationService {
 
     // Plans the entry of the Vehicle
-    ParkingTicketDTO enterVehicle(EntryRequest request);
+    ParkingTicketDto enterVehicle(EntryRequestDto request);
 
     // Plans the exit of the Vehicle
-    BillDTO exitVehicle(ExitRequest request);
+    BillDto exitVehicle(ExitRequestDto request);
 
 }

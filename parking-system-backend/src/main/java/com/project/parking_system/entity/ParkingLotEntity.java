@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @ToString
-public class ParkingLot {
+public class ParkingLotEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

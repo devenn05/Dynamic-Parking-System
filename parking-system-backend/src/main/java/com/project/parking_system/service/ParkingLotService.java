@@ -1,7 +1,7 @@
 package com.project.parking_system.service;
 
-import com.project.parking_system.dto.ParkingLotDTO;
-import com.project.parking_system.dto.ParkingLotRequest;
+import com.project.parking_system.dto.ParkingLotDto;
+import com.project.parking_system.dto.ParkingLotRequestDto;
 
 import java.util.List;
 
@@ -12,14 +12,14 @@ import java.util.List;
 public interface ParkingLotService {
 
     // 1. Creates a new parking lot and initializes its slots.
-    ParkingLotDTO createParkingLot(ParkingLotRequest request);
+    ParkingLotDto createParkingLot(ParkingLotRequestDto request);
 
     // 2. Retrieves all lots with their live availability counts.
-    List<ParkingLotDTO> getAllParkingLots();
+    List<ParkingLotDto> getAllParkingLots();
 
     // 3. Retrieves a single lot by ID.
-    ParkingLotDTO getParkingLotById(Long id);
+    ParkingLotDto getParkingLotById(Long id);
 
     // 4. To update the Lot Information.
-    ParkingLotDTO updateParkingLot(Long id, ParkingLotRequest request);
+    ParkingLotDto updateParkingLot(Long id, ParkingLotRequestDto request);
 }

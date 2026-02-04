@@ -1,6 +1,6 @@
 package com.project.parking_system.service;
 
-import com.project.parking_system.dto.BillingResult;
+import com.project.parking_system.dto.BillingResultDto;
 
 import java.time.LocalDateTime;
 
@@ -12,9 +12,9 @@ import java.time.LocalDateTime;
 public interface BillingService {
 
     // Calculates the final bill amount based on duration and lot occupancy.
-    BillingResult calculateBill(LocalDateTime entryTime,
-                                LocalDateTime exitTime,
-                                Double basePricePerHour,
-                                Long parkingLotId,
-                                Integer totalSlots);
+    BillingResultDto calculateBill(LocalDateTime entryTime,
+                                   LocalDateTime exitTime,
+                                   Double basePricePerHour,
+                                   Long parkingLotId,
+                                   Integer totalSlots);
 }

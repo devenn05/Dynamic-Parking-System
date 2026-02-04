@@ -1,8 +1,8 @@
 package com.project.parking_system.service.impl;
 
 import com.project.parking_system.config.AppConstants;
-import com.project.parking_system.dto.BillingResult;
-import com.project.parking_system.enums.SlotStatus;
+import com.project.parking_system.dto.BillingResultDto;
+import com.project.parking_system.enums.SlotStatusEnum;
 import com.project.parking_system.repository.ParkingSlotRepository;
 import com.project.parking_system.service.BillingService;
 import com.project.parking_system.utils.ParkingUtils;
@@ -33,10 +33,10 @@ public class BillingServiceImpl implements BillingService {
      * @param basePricePerHour The base hourly rate for the parking lot.
      * @param parkingLotId The ID of the lot, used to calculate occupancy.
      * @param totalSlots The total capacity of the lot.
-     * @return A {@link BillingResult} DTO containing the total amount, applied multiplier, and billable hours.
+     * @return A {@link BillingResultDto} DTO containing the total amount, applied multiplier, and billable hours.
      */
     @Override
-    public BillingResult calculateBill(LocalDateTime entryTime, LocalDateTime exitTime, Double basePricePerHour, Long parkingLotId, Integer totalSlots){
+    public BillingResultDto calculateBill(LocalDateTime entryTime, LocalDateTime exitTime, Double basePricePerHour, Long parkingLotId, Integer totalSlots){
 
         // UTILS
         long minutes = ParkingUtils.calculateDurationInMinutes(entryTime, exitTime);
@@ -46,7 +46,7 @@ public class BillingServiceImpl implements BillingService {
 
         // If the parking minutes is less than 30 minutes then the session charges no money.
         if (minutes <= AppConstants.FREE_PARKING_MINUTES) {
-            return BillingResult.builder().totalAmount(0.0)
+            return BillingResultDto.builder().totalAmount(0.0)
                     .appliedMultiplier(multiplier).billableHours(0L).build();
         }
 
@@ -61,7 +61,7 @@ public class BillingServiceImpl implements BillingService {
         // Formula: hours * basePrice * multiplier
         double totalAmount =  billableHours * basePricePerHour * multiplier;
 
-        return BillingResult.builder()
+        return BillingResultDto.builder()
                 .totalAmount(totalAmount)
                 .appliedMultiplier(multiplier)
                 .billableHours(billableHours)
@@ -77,7 +77,7 @@ public class BillingServiceImpl implements BillingService {
     private double getOccupancyMultiplier(Long parkingLotId, Integer totalSlots){
 
         // Gets the count of OCCUPIED slots in a Parking Lot
-        long occupiedSlots = parkingSlotRepository.countByParkingLotIdAndSlotStatus(parkingLotId, SlotStatus.OCCUPIED);
+        long occupiedSlots = parkingSlotRepository.countByParkingLotIdAndSlotStatus(parkingLotId, SlotStatusEnum.OCCUPIED);
 
         // Convert the count of occupied slots into percentage coverage.
         double occupancyPercentage = ((double) occupiedSlots / totalSlots) * 100;

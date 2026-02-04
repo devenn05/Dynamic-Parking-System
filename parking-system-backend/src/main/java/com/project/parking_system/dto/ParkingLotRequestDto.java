@@ -15,7 +15,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class ParkingLotRequest {
+public class ParkingLotRequestDto {
 
     @NotBlank(message = "Name cannot be empty.")
     private String name;

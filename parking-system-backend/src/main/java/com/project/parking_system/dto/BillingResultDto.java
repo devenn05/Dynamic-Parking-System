@@ -8,7 +8,7 @@ import lombok.Data;
  */
 @Data
 @Builder
-public class BillingResult {
+public class BillingResultDto {
     private Double totalAmount;
     private Double appliedMultiplier;
     private Long billableHours;

@@ -1,7 +1,7 @@
 package com.project.parking_system.service;
 
-import com.project.parking_system.entity.Vehicle;
-import com.project.parking_system.enums.VehicleType;
+import com.project.parking_system.entity.VehicleEntity;
+import com.project.parking_system.enums.VehicleTypeEnum;
 
 import java.util.Optional;
 
@@ -12,8 +12,8 @@ import java.util.Optional;
 public interface VehicleService {
 
     // If vehicle exists, return it; otherwise create it.
-    Vehicle findOrCreateVehicle(String vehicleNumber, VehicleType vehicleType);
+    VehicleEntity findOrCreateVehicle(String vehicleNumber, VehicleTypeEnum vehicleTypeEnum);
 
     //  Finds a vehicle through Vehicle Number.
-    Optional<Vehicle> findByVehicleNumber(String vehicleNumber);
+    Optional<VehicleEntity> findByVehicleNumber(String vehicleNumber);
 }
