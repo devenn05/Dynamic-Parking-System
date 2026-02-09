@@ -3,7 +3,7 @@ package com.project.parking_system.mapper;
 import com.project.parking_system.dto.BillDto;
 import com.project.parking_system.dto.BillingResultDto;
 import com.project.parking_system.dto.ParkingTicketDto;
-import com.project.parking_system.entity.ParkingSessionEntity;
+import com.project.parking_system.entity.ParkingSession;
 import org.springframework.stereotype.Component;
 
 /**
@@ -19,13 +19,13 @@ public class ParkingMapper {
     /**
      * Converts a Parking Session entity into a Parking Ticket DTO while Entry Vehicle.
      */
-    public static ParkingTicketDto toTicketDTO(ParkingSessionEntity session) {
+    public static ParkingTicketDto toTicketDTO(ParkingSession session) {
         return ParkingTicketDto.builder()
                 .sessionId(session.getId())
-                .vehicleNumber(session.getVehicleEntity().getVehicleNumber())
-                .vehicleTypeEnum(session.getVehicleEntity().getVehicleTypeEnum())
-                .slotNumber(session.getParkingSlotEntity().getSlotNumber())
-                .parkingLotName(session.getParkingSlotEntity().getParkingLotEntity().getName())
+                .vehicleNumber(session.getVehicle().getVehicleNumber())
+                .vehicleType(session.getVehicle().getVehicleType())
+                .slotNumber(session.getParkingSlot().getSlotNumber())
+                .parkingLotName(session.getParkingSlot().getParkingLot().getName())
                 .entryTime(session.getEntryTime())
                 .build();
     }
@@ -33,18 +33,18 @@ public class ParkingMapper {
     /**
      * Converts an Ending Parking Session into a Bill Dto which is used while exit vehicle.
      */
-    public static BillDto toBillDTO(ParkingSessionEntity session, BillingResultDto billingResultDTO, long durationMinutes) {
+    public static BillDto toBillDTO(ParkingSession session, BillingResultDto billingResultDTO, long durationMinutes) {
         // We use the Pre-fetched session data
         return BillDto.builder()
                 .sessionId(session.getId())
-                .vehicleNumber(session.getVehicleEntity().getVehicleNumber())
+                .vehicleNumber(session.getVehicle().getVehicleNumber())
                 .entryTime(session.getEntryTime())
                 .exitTime(session.getExitTime())
                 .duration(durationMinutes)
                 .totalAmount(billingResultDTO.getTotalAmount())
-                .parkingLotName(session.getParkingSlotEntity().getParkingLotEntity().getName())
+                .parkingLotName(session.getParkingSlot().getParkingLot().getName())
                 // Breakdown details
-                .basePricePerHour(session.getParkingSlotEntity().getParkingLotEntity().getBasePricePerHour())
+                .basePricePerHour(session.getParkingSlot().getParkingLot().getBasePricePerHour())
                 .billableHours(billingResultDTO.getBillableHours())
                 .occupancyMultiplier(billingResultDTO.getAppliedMultiplier())
                 .build();

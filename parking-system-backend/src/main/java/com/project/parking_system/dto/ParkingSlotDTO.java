@@ -1,7 +1,7 @@
 package com.project.parking_system.dto;
 
 
-import com.project.parking_system.enums.SlotStatusEnum;
+import com.project.parking_system.enums.SlotStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -17,5 +17,5 @@ import lombok.Data;
 public class ParkingSlotDto {
     private Long id;
     private Integer slotNumber;
-    private SlotStatusEnum status;
+    private SlotStatus status;
 }

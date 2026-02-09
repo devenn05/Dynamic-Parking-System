@@ -1,87 +1,110 @@
 <div class="container">
   
-  <!-- Dynamic Title -->
-  <h2>{{ isEditing() ? 'Update Parking Lot' : 'Manage Parking Lots' }}</h2>
+  <h2 class="mat-headline-medium">{{ isEditing() ? 'Update Parking Lot' : 'Manage Parking Lots' }}</h2>
 
-  <div *ngIf="errorMessage()" class="error">
+  <!-- Error Alert -->
+  <div *ngIf="errorMessage()" class="error" style="margin-bottom: 15px;">
     {{ errorMessage() }}
   </div>
 
-  <!-- Creation / Editing Form -->
-  <div class="card" [style.border]="isEditing() ? '2px solid orange' : '1px solid #ccc'">
-    <h3>{{ isEditing() ? 'Editing Lot #' + editingId() : 'Create New Lot' }}</h3>
+  <!-- Creation / Editing Card -->
+  <mat-card class="card" [style.border]="isEditing() ? '2px solid #ff9800' : 'none'" style="margin-bottom: 30px; padding: 20px;">
+    <h3 style="margin-top: 0;">{{ isEditing() ? 'Editing Lot #' + editingId() : 'Create New Lot' }}</h3>
     
-    <form #lotForm="ngForm">
+    <form #lotForm="ngForm" class="parking-form">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; column-gap: 25px;">
+        <mat-form-field appearance="outline">
+          <mat-label>Lot Name</mat-label>
+          <input matInput [(ngModel)]="newLot.name" name="name" required>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Location</mat-label>
+          <input matInput [(ngModel)]="newLot.location" name="location" required>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Total Slots</mat-label>
+          <input type="number" matInput [(ngModel)]="newLot.totalSlots" name="slots" required min="1">
+          <mat-hint *ngIf="isEditing()">Cannot decrease slots</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Price Per Hour (₹)</mat-label>
+          <input type="number" matInput [(ngModel)]="newLot.basePricePerHour" name="price" required min="1">
+        </mat-form-field>
+      </div>
       
-      <input type="text" [(ngModel)]="newLot.name" name="name" placeholder="Lot Name" required>
-      <input type="text" [(ngModel)]="newLot.location" name="location" placeholder="Location" required>
-      
-      <!-- Helper text for slots -->
-      <small *ngIf="isEditing()" style="color: red;">* Warning: You can increase slots, but cannot decrease them.</small>
-      <input type="number" [(ngModel)]="newLot.totalSlots" name="slots" placeholder="Total Slots" required min="1">
-      
-      <input type="number" [(ngModel)]="newLot.basePricePerHour" name="price" placeholder="Base Price/Hr" required min="1">
-      
-      <div style="margin-top: 10px;">
-          
-          <!-- Button: Shows ONLY if NOT editing -->
-          <button *ngIf="!isEditing()" 
-                  (click)="createLot()" 
-                  type="button" 
-                  [disabled]="!lotForm.valid"
-                  [style.opacity]="!lotForm.valid ? '0.5' : '1'">
-            Create Lot
+      <div style="margin-top: 20px;">
+          <button *ngIf="!isEditing()" mat-raised-button color="primary" 
+                  [disabled]="!lotForm.valid" (click)="createLot()">
+            <mat-icon>add</mat-icon> Create Lot
           </button>
 
-          <!-- Buttons: Show ONLY if editing -->
-          <button *ngIf="isEditing()" 
-                  (click)="updateCurrentLot()" 
-                  type="button" 
-                  style="background-color: orange; color: black; margin-right: 10px;">
-            Update Lot
-          </button>
-
-          <button *ngIf="isEditing()" 
-                  (click)="cancelEdit()" 
-                  type="button" 
-                  style="background-color: grey;">
-            Cancel
-          </button>
-
+          <div *ngIf="isEditing()">
+            <button mat-raised-button style="background-color: #ff9800; color: white; margin-right: 10px;" (click)="updateCurrentLot()">
+              <mat-icon>save</mat-icon> Update Lot
+            </button>
+            <button mat-stroked-button (click)="cancelEdit()">Cancel</button>
+          </div>
       </div>
     </form>
-  </div>
+  </mat-card>
 
-  <!-- List Table -->
-  <table style="border: 1">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Location</th>
-        <th>Availability</th>
-        <th>Price/Hr</th>
-        <th>Action</th> 
-      </tr>
-    </thead>
-    <tbody>
-  
-      <tr *ngFor="let lot of lots()">
-        <td>{{ lot.id }}</td>
-        <td>{{ lot.name }}</td>
-        <td>{{ lot.location }}</td>
-        <td>{{ lot.availableSlots }} / {{ lot.totalSlots }}</td>
-        <td>{{ lot.basePricePerHour }}</td>
-        
-        <!-- Action Cell with Edit Button -->
-        <td style="text-align: center;"> 
-            <!-- This calls the new function startEdit() -->
-            <button (click)="startEdit(lot)" style="font-size: 12px; padding: 5px;">
-              Edit
+  <!-- MATERIAL TABLE -->
+  <div class="mat-elevation-z2">
+    <table mat-table [dataSource]="dataSource" class="full-width-table">
+
+      <!-- ID Column -->
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef style="color: black;"> ID </th>
+        <td mat-cell *matCellDef="let lot"> {{lot.id}} </td>
+      </ng-container>
+
+      <!-- Name Column -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef  style="color: black;"> Name </th>
+        <td mat-cell *matCellDef="let lot"> {{lot.name}} </td>
+      </ng-container>
+
+      <!-- Location Column -->
+      <ng-container matColumnDef="location">
+        <th mat-header-cell *matHeaderCellDef  style="color: black;"> Location </th>
+        <td mat-cell *matCellDef="let lot"> {{lot.location}} </td>
+      </ng-container>
+
+      <!-- Availability Column -->
+      <ng-container matColumnDef="availability">
+        <th mat-header-cell *matHeaderCellDef  style="color: black;"> Availability </th>
+        <td mat-cell *matCellDef="let lot"> 
+            <span [class.text-danger]="lot.availableSlots === 0">
+                {{ lot.availableSlots }} / {{ lot.totalSlots }}
+            </span>
+        </td>
+      </ng-container>
+
+      <!-- Price Column -->
+      <ng-container matColumnDef="price">
+        <th mat-header-cell *matHeaderCellDef  style="color: black;"> Price/Hr </th>
+        <td mat-cell *matCellDef="let lot"> ₹{{lot.basePricePerHour}} </td>
+      </ng-container>
+
+      <!-- Action Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef style="text-align: center; color: black;"> Action </th>
+        <td mat-cell *matCellDef="let lot" style="text-align: center;"> 
+            <button (click)="startEdit(lot)">
+              <mat-icon>edit</mat-icon>
             </button>
         </td>
+      </ng-container>
 
-      </tr>
-    </tbody>
-  </table>
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    <mat-paginator [pageSizeOptions]="[5, 10, 20]"
+                   aria-label="Select page of parking lots">
+    </mat-paginator>
+  </div>
 </div>

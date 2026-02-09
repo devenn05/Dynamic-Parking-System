@@ -1,6 +1,6 @@
 package com.project.parking_system.entity;
 
-import com.project.parking_system.enums.SessionStatusEnum;
+import com.project.parking_system.enums.SessionStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,8 +11,8 @@ import java.time.LocalDateTime;
  * This is the core transactional entity that links a Vehicle to a ParkingSlot for a specific duration.
  * It tracks the entire lifecycle of a parking event from entry to exit.
  *
- * @see VehicleEntity
- * @see ParkingSlotEntity
+ * @see Vehicle
+ * @see ParkingSlot
  */
 
 @Entity
@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 @ToString(exclude = {"vehicle", "parkingSlot"})
 @Table(name = "parking_sessions")
 @Builder
-public class ParkingSessionEntity {
+public class ParkingSession {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,11 +41,11 @@ public class ParkingSessionEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vehicle_id", nullable = false)
-    private VehicleEntity vehicleEntity;
+    private Vehicle vehicle;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parking_slot_id", nullable = false)
-    private ParkingSlotEntity parkingSlotEntity;
+    private ParkingSlot parkingSlot;
 
     @Column(name = "entry_time", nullable = false)
     private LocalDateTime entryTime;
@@ -58,6 +58,6 @@ public class ParkingSessionEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private SessionStatusEnum sessionStatusEnum;
+    private SessionStatus sessionStatus;
 
 }

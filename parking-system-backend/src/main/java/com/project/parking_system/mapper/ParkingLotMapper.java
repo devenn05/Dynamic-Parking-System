@@ -3,7 +3,7 @@ package com.project.parking_system.mapper;
 
 import com.project.parking_system.dto.ParkingLotDto;
 import com.project.parking_system.dto.ParkingLotRequestDto;
-import com.project.parking_system.entity.ParkingLotEntity;
+import com.project.parking_system.entity.ParkingLot;
 import org.springframework.stereotype.Component;
 
 /**
@@ -19,21 +19,21 @@ public class ParkingLotMapper {
     /**
      * Converts a ParkingLot entity (from the database) into a ParkingLotDTO (to send to the user).
      */
-    public static ParkingLotDto toDto(ParkingLotEntity parkingLotEntity){
+    public static ParkingLotDto toDto(ParkingLot parkingLot){
         return ParkingLotDto.builder()
-                .id(parkingLotEntity.getId())
-                .name(parkingLotEntity.getName())
-                .location(parkingLotEntity.getLocation())
-                .totalSlots(parkingLotEntity.getTotalSlots())
-                .basePricePerHour(parkingLotEntity.getBasePricePerHour())
-                .createdAt(parkingLotEntity.getCreatedAt()).build();
+                .id(parkingLot.getId())
+                .name(parkingLot.getName())
+                .location(parkingLot.getLocation())
+                .totalSlots(parkingLot.getTotalSlots())
+                .basePricePerHour(parkingLot.getBasePricePerHour())
+                .createdAt(parkingLot.getCreatedAt()).build();
     }
 
     /**
      * Converts a ParkingLotRequest (from the user) into a ParkingLot entity (to be saved in the database).
      */
-    public static ParkingLotEntity toEntity(ParkingLotRequestDto parkingLotRequestDTO){
-        return ParkingLotEntity.builder()
+    public static ParkingLot toEntity(ParkingLotRequestDto parkingLotRequestDTO){
+        return ParkingLot.builder()
                 .name(parkingLotRequestDTO.getName())
                 .location(parkingLotRequestDTO.getLocation())
                 .totalSlots(parkingLotRequestDTO.getTotalSlots())

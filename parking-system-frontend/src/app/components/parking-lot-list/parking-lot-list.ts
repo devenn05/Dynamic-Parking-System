@@ -1,10 +1,18 @@
-import { Component, OnInit, NgZone, signal } from '@angular/core';
+import { Component, OnInit, NgZone, signal, viewChild, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ParkingService } from '../../services/parking';
 import { ParkingLot } from '../../models/models.interface';
 import { PLATFORM_ID, Inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatButtonModule } from '@angular/material/button';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatCardModule } from '@angular/material/card';
+
 
 /**
  * Parking Lot List Component
@@ -17,11 +25,24 @@ import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-parking-lot-list',
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, MatTableModule, 
+    MatPaginatorModule, 
+    MatButtonModule, 
+    MatInputModule, 
+    MatFormFieldModule, 
+    MatIconModule,
+    MatCardModule],
   templateUrl: './parking-lot-list.html',
   styleUrl: '../../app.css',
 })
 export class ParkingLotList implements OnInit {
+
+   // 1. Data Source and Paginator
+  dataSource = new MatTableDataSource<ParkingLot>([]);
+  displayedColumns: string[] = ['id', 'name', 'location', 'availability', 'price', 'actions'];
+
+  
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   // List of lots fetched from serve
   lots = signal<ParkingLot[]>([])
@@ -48,7 +69,11 @@ export class ParkingLotList implements OnInit {
 
   // Fetches the latest list of lots from the API. 
   loadLots(){
-    this.parkingService.getAllLots().subscribe(data => this.lots.set(data));
+    this.parkingService.getAllLots().subscribe(data => {
+      this.lots.set(data)
+      this.dataSource.data = data;
+      this.dataSource.paginator = this.paginator;
+    } );
   }
 
   // Handles creation of a new parking lot.

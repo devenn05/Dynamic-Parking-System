@@ -1,6 +1,6 @@
 package com.project.parking_system.dto;
 
-import com.project.parking_system.enums.VehicleTypeEnum;
+import com.project.parking_system.enums.VehicleType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -29,7 +29,7 @@ public class EntryRequestDto {
      //The type of vehicle (CAR or BIKE).
      //Used for classification (and potentially different pricing in future extensions).
     @NotNull(message = "Vehicle Type cannot be empty.")
-    private VehicleTypeEnum vehicleTypeEnum;
+    private VehicleType vehicleType;
 
     // The ID of the Parking Lot where the user wants to park
     @NotNull(message = "Parking Lot ID cannot be empty.")

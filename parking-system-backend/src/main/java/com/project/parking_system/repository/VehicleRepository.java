@@ -1,6 +1,6 @@
 package com.project.parking_system.repository;
 
-import com.project.parking_system.entity.VehicleEntity;
+import com.project.parking_system.entity.Vehicle;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,7 +12,7 @@ import java.util.Optional;
  */
 
 @Repository
-public interface VehicleRepository extends JpaRepository<VehicleEntity, Long> {
+public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     // SQL: SELECT * FROM vehicles WHERE vehicle_number = ?
-    Optional<VehicleEntity> findByVehicleNumber(String vehicleNumber);
+    Optional<Vehicle> findByVehicleNumber(String vehicleNumber);
 }

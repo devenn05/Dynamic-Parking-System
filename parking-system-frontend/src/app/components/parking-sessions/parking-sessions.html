@@ -1,125 +1,149 @@
 <div class="container">
-  <h2>Parking Sessions</h2>
-  
-  <!-- CONTROLS ROW: Filters and Dropdown -->
-  <div class="card" style="display: flex; gap: 20px; align-items: center; padding: 15px;">
-    
-    <!-- 1. Lot Filter -->
-    <div style="flex: 1;">
-      <label><strong>Lot: </strong></label>
-      <select [ngModel]="selectedLotId()" (ngModelChange)="selectedLotId.set($event); loadData()">
-        <option [ngValue]="null">-- Show All Lots --</option>
-        <option *ngFor="let lot of lots()" [value]="lot.id">{{ lot.name }}</option>
-      </select>
-    </div>
+  <h2 class="mat-headline-medium">Parking Sessions</h2>
 
-    <!-- 2. Vehicle Search -->
-    <div style="flex: 1;">
-       <label><strong>Search Vehicle: </strong></label>
-       <input type="text" 
-              [ngModel]="searchTerm()" 
-              (ngModelChange)="searchTerm.set($event)" 
-              placeholder="e.g. MH-12..." 
-              style="margin-bottom: 0;"> 
-    </div>
-
-    <!-- 3. Date Filter -->
-    <div style="flex: 1;">
-        <label><strong>Filter Date: </strong></label>
-        <input type="date" 
-               [ngModel]="searchDate()" 
-               (ngModelChange)="searchDate.set($event)"
-               style="margin-bottom: 0;">
-    </div>
-    
-    <!-- 4. Reset Button -->
-    <button (click)="searchTerm.set(''); searchDate.set('')" style="background: grey; font-size: 12px;">
-      Clear Filters
-    </button>
-  </div>
-
-  <div class="tabs" style="margin-top: 20px;">
-    <button (click)="view.set('ACTIVE')" [class.active]="view() === 'ACTIVE'">Current Active Vehicles</button>
-    <button (click)="view.set('HISTORY')" [class.active]="view() === 'HISTORY'">History (All)</button>
-  </div>
-
-  <!-- TABLE 1: ACTIVE SESSIONS -->
-  <table style="border: 1" *ngIf="view() === 'ACTIVE'">
-    <thead>
-      <tr>
-        <th>Vehicle</th>
-        <th>Vehicle Type</th>
-        <th *ngIf="!selectedLotId()">Parking Lot</th> 
-        <th>Slot</th>
-        <th>Entry Time</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- [CHANGED] Loop over filteredActiveSessions instead of activeSession() -->
-      <tr *ngFor="let s of filteredActiveSessions">
-        <td>{{ s.vehicleNumber }}</td>
-        <td>{{ s.vehicleType }}</td>
-        <td *ngIf="!selectedLotId()">{{ s.parkingLotName }}</td>
-        <td>{{ s.slotNumber }}</td>
-        <td>{{ s.entryTime | date:'medium' }}</td>
-        <td style="text-align: center;">
-            <button 
-                (click)="onTerminate(s)" 
-                style="background-color: #dc3545; color: white; padding: 5px 10px; border: none; font-size: 12px; cursor: pointer;">
-                Terminate
-            </button>
-        </td>
-      </tr>
+  <!-- Filters Card -->
+  <mat-card class="card" style="margin-bottom: 20px; padding: 15px;">
+    <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
       
-      <!-- Fallback if no results -->
-      <tr *ngIf="filteredActiveSessions.length === 0">
-        <td colspan="6" style="text-align: center; padding: 20px; color: grey;">
-           No vehicles match your search.
-        </td>
-      </tr>
-    </tbody>
-  </table>
+      <!-- 1. Lot Selection -->
+      <mat-form-field appearance="outline" style="flex: 1; min-width: 200px; height: 107px;">
+        <mat-label>Select Parking Lot</mat-label>
+        <mat-select [ngModel]="selectedLotId()" (ngModelChange)="selectedLotId.set($event); loadData()">
+          <mat-option [value]="null">All Lots</mat-option>
+          <mat-option *ngFor="let lot of lots()" [value]="lot.id">{{ lot.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
 
-  <!-- TABLE 2: HISTORY SESSIONS -->
-  <table style="border: 1" *ngIf="view() === 'HISTORY'">
-    <thead>
-      <tr>
-        <th>Vehicle</th>
-        <th>Vehicle Type</th>
-        <th *ngIf="!selectedLotId()">Parking Lot</th>
-        <th>Slot</th>
-        <th>Entry</th>
-        <th>Exit</th>
-        <th>Bill</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- [CHANGED] Loop over filteredHistorySessions instead of historySession() -->
-      <tr *ngFor="let s of filteredHistorySessions">
-        <td>{{ s.vehicleNumber }}</td>
-        <td>{{ s.vehicleType }}</td>
-        <td *ngIf="!selectedLotId()">{{ s.parkingLotName }}</td>
-        <td>{{ s.slotNumber }}</td>
-        <td>{{ s.entryTime | date:'short' }}</td>
-        <td>{{ s.exitTime | date:'short' }}</td>
+      <!-- 2. Vehicle Search -->
+      <mat-form-field appearance="outline" style="flex: 1; min-width: 200px;">
+        <mat-label>Search Vehicle No.</mat-label>
+        <input matInput [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)" placeholder="e.g. MH12">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <!-- 3. Date Selection -->
+      <mat-form-field appearance="outline" style="flex: 1; min-width: 200px;">
+        <mat-label>Filter Date</mat-label>
+        <input matInput type="date" [ngModel]="searchDate()" (ngModelChange)="searchDate.set($event)">
+      </mat-form-field>
+
+      <!-- 4. Reset -->
+      <button mat-stroked-button color="warn" (click)="resetFilters()">
+        <mat-icon>refresh</mat-icon> Reset
+      </button>
+    </div>
+  </mat-card>
+
+  <!-- MATERIAL TABS -->
+  <mat-tab-group animationDuration="0ms">
+    
+    <!-- ACTIVE TAB -->
+    <mat-tab label="Active Vehicles">
+      <div class="mat-elevation-z2">
+        <table mat-table [dataSource]="activeDataSource">
+          
+          <ng-container matColumnDef="vehicleNumber">
+            <th mat-header-cell *matHeaderCellDef> Vehicle </th>
+            <td mat-cell *matCellDef="let s"> {{s.vehicleNumber}} </td>
+          </ng-container>
+
+          <ng-container matColumnDef="vehicleType">
+            <th mat-header-cell *matHeaderCellDef> Type </th>
+            <td mat-cell *matCellDef="let s"> {{s.vehicleType}} </td>
+          </ng-container>
+
+          <ng-container matColumnDef="parkingLotName">
+            <th mat-header-cell *matHeaderCellDef> Parking Lot </th>
+            <td mat-cell *matCellDef="let s"> {{s.parkingLotName}} </td>
+          </ng-container>
+
+          <ng-container matColumnDef="slotNumber">
+            <th mat-header-cell *matHeaderCellDef> Slot </th>
+            <td mat-cell *matCellDef="let s"> {{s.slotNumber}} </td>
+          </ng-container>
+
+          <ng-container matColumnDef="entryTime">
+            <th mat-header-cell *matHeaderCellDef> Entry Time </th>
+            <td mat-cell *matCellDef="let s"> {{s.entryTime | date:'short'}} </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef style="text-align: center;"> Actions </th>
+            <td mat-cell *matCellDef="let s" style="text-align: center;">
+              <button mat-mini-fab color="warn" (click)="onTerminate(s)" title="Terminate Session">
+                <mat-icon>power_settings_new</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="activeColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: activeColumns;"></tr>
+        </table>
         
-        <!-- Logic for Bill Column -->
-        <td [style.color]="s.totalAmount === 0 && s.status !== 'TERMINATED' ? 'green' : 'inherit'"
-            [style.fontWeight]="s.totalAmount === 0 && s.status !== 'TERMINATED' ? 'bold' : 'normal'">
-            {{ s.totalAmount === 0 ? (s.status === 'TERMINATED' ? '-' : 'FREE') : (s.totalAmount ? '₹' + s.totalAmount : '-') }}
-        </td>
+        <mat-paginator #activePaginator [pageSize]="5" [pageSizeOptions]="[5, 10, 20]"></mat-paginator>
+      </div>
+    </mat-tab>
 
-        <td>{{ s.status }}</td>
-      </tr>
+    <!-- HISTORY TAB -->
+    <mat-tab label="All Records (History)">
+      <div class="mat-elevation-z2">
+        <table mat-table [dataSource]="historyDataSource">
+          
+          <ng-container matColumnDef="vehicleNumber">
+            <th mat-header-cell *matHeaderCellDef> Vehicle </th>
+            <td mat-cell *matCellDef="let s"> {{s.vehicleNumber}} </td>
+          </ng-container>
 
-      <!-- Fallback if no results -->
-      <tr *ngIf="filteredHistorySessions.length === 0">
-        <td colspan="8" style="text-align: center; padding: 20px; color: grey;">
-           No history found for these filters.
-        </td>
-      </tr>
-    </tbody>
-  </table>
+          <ng-container matColumnDef="vehicleType">
+            <th mat-header-cell *matHeaderCellDef> Type </th>
+            <td mat-cell *matCellDef="let s"> {{s.vehicleType}} </td>
+          </ng-container>
+
+          <ng-container matColumnDef="parkingLotName">
+            <th mat-header-cell *matHeaderCellDef> Lot </th>
+            <td mat-cell *matCellDef="let s"> {{s.parkingLotName}} </td>
+          </ng-container>
+
+          <ng-container matColumnDef="slotNumber">
+            <th mat-header-cell *matHeaderCellDef> Slot </th>
+            <td mat-cell *matCellDef="let s"> {{s.slotNumber}} </td>
+          </ng-container>
+
+          <ng-container matColumnDef="entryTime">
+            <th mat-header-cell *matHeaderCellDef> Entry </th>
+            <td mat-cell *matCellDef="let s"> {{s.entryTime | date:'short'}} </td>
+          </ng-container>
+
+          <ng-container matColumnDef="exitTime">
+            <th mat-header-cell *matHeaderCellDef> Exit </th>
+            <td mat-cell *matCellDef="let s"> {{s.exitTime ? (s.exitTime | date:'short') : '-'}} </td>
+          </ng-container>
+
+          <ng-container matColumnDef="totalAmount">
+            <th mat-header-cell *matHeaderCellDef> Bill </th>
+            <td mat-cell *matCellDef="let s"> 
+               <span *ngIf="s.totalAmount > 0">₹{{s.totalAmount}}</span>
+               <span *ngIf="s.totalAmount === 0 && s.status !== 'TERMINATED'" style="color: green; font-weight: bold;">FREE</span>
+               <span *ngIf="s.status === 'TERMINATED'">-</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef> Status </th>
+            <td mat-cell *matCellDef="let s"> 
+              <span [style.color]="s.status === 'ACTIVE' ? 'orange' : (s.status === 'COMPLETED' ? 'green' : 'red')">
+                {{s.status}}
+              </span>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="historyColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: historyColumns;"></tr>
+        </table>
+
+        <mat-paginator #historyPaginator [pageSize]="10" [pageSizeOptions]="[10, 25, 50]"></mat-paginator>
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
 </div>

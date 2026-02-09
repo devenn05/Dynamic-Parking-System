@@ -1,7 +1,7 @@
 package com.project.parking_system.service.impl;
 
-import com.project.parking_system.entity.VehicleEntity;
-import com.project.parking_system.enums.VehicleTypeEnum;
+import com.project.parking_system.entity.Vehicle;
+import com.project.parking_system.enums.VehicleType;
 import com.project.parking_system.exception.BusinessException;
 import com.project.parking_system.repository.VehicleRepository;
 import com.project.parking_system.service.VehicleService;
@@ -24,34 +24,34 @@ public class VehicleServiceImpl implements VehicleService {
     // Registers a vehicle if it's new. Returns existing one if found.
     // Includes a check to ensure the vehicle type hasn't changed (e.g., Bike trying to enter as Car).
     @Override
-    public VehicleEntity findOrCreateVehicle(String vehicleNumber, VehicleTypeEnum vehicleTypeEnum){
+    public Vehicle findOrCreateVehicle(String vehicleNumber, VehicleType vehicleType){
 
         // 1. Sanitize the input
         String cleanNumber = ParkingUtils.normalizeVehicleNumber(vehicleNumber);
 
         // 1. Check if vehicle exists
-        Optional<VehicleEntity> existingVehicle = vehicleRepository.findByVehicleNumber(cleanNumber);
+        Optional<Vehicle> existingVehicle = vehicleRepository.findByVehicleNumber(cleanNumber);
 
         // 2. If yes, return it. If no, create and save a new one.
         if (existingVehicle.isPresent()){
-            VehicleEntity vehicleEntity = existingVehicle.get();
+            Vehicle vehicle = existingVehicle.get();
 
-            if (vehicleEntity.getVehicleTypeEnum() != vehicleTypeEnum){
-                throw new BusinessException("Vehicle " + vehicleNumber + " is registered as " + vehicleEntity.getVehicleTypeEnum() + ". Cannot process as " + vehicleTypeEnum);
+            if (vehicle.getVehicleType() != vehicleType){
+                throw new BusinessException("Vehicle " + vehicleNumber + " is registered as " + vehicle.getVehicleType() + ". Cannot process as " + vehicleType);
             }
-            return vehicleEntity;
+            return vehicle;
         }
 
-        VehicleEntity newVehicleEntity = VehicleEntity.builder()
+        Vehicle newVehicle = Vehicle.builder()
                 .vehicleNumber(cleanNumber)
-                .vehicleTypeEnum(vehicleTypeEnum)
+                .vehicleType(vehicleType)
                 .build();
 
-        return vehicleRepository.save(newVehicleEntity);
+        return vehicleRepository.save(newVehicle);
     }
 
     @Override
-    public Optional<VehicleEntity> findByVehicleNumber(String vehicleNumber){
+    public Optional<Vehicle> findByVehicleNumber(String vehicleNumber){
         return vehicleRepository.findByVehicleNumber(ParkingUtils.normalizeVehicleNumber(vehicleNumber));
     }
 }

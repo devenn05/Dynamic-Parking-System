@@ -5,6 +5,6 @@ package com.project.parking_system.enums;
  * Can be used for different pricing logic in future iterations.
  */
 
-public enum VehicleTypeEnum {
+public enum VehicleType {
     CAR, BIKE
 }

@@ -1,10 +1,10 @@
 package com.project.parking_system.service.impl;
 
 import com.project.parking_system.dto.*;
-import com.project.parking_system.entity.ParkingLotEntity;
-import com.project.parking_system.entity.ParkingSessionEntity;
-import com.project.parking_system.entity.ParkingSlotEntity;
-import com.project.parking_system.entity.VehicleEntity;
+import com.project.parking_system.entity.ParkingLot;
+import com.project.parking_system.entity.ParkingSession;
+import com.project.parking_system.entity.ParkingSlot;
+import com.project.parking_system.entity.Vehicle;
 import com.project.parking_system.exception.BusinessException;
 import com.project.parking_system.exception.ResourceNotFoundException;
 import com.project.parking_system.mapper.ParkingMapper;
@@ -51,26 +51,26 @@ public class ParkingOperationServiceImpl implements ParkingOperationService {
     public ParkingTicketDto enterVehicle(EntryRequestDto request){
 
         // 1. Check if the parking Lot exists.
-        ParkingLotEntity currentParkingLotEntity = parkingLotRepository.findById(request.getParkingLotId()).orElseThrow(
+        ParkingLot currentParkingLot = parkingLotRepository.findById(request.getParkingLotId()).orElseThrow(
                 () -> new ResourceNotFoundException("Parking Lot not found")
         );
 
         // 2. Create or Find the vehicle if present in the request that is coming from frontend
-        VehicleEntity vehicleEntity = vehicleService.findOrCreateVehicle(request.getVehicleNumber(), request.getVehicleTypeEnum());
+        Vehicle vehicle = vehicleService.findOrCreateVehicle(request.getVehicleNumber(), request.getVehicleType());
 
         //3. Check If the vehicle is already running an Active Session if yes Throw Error.
-        if (parkingSessionService.findActiveSession(vehicleEntity).isPresent()){
+        if (parkingSessionService.findActiveSession(vehicle).isPresent()){
             throw new BusinessException("Vehicle with same ID is already under Active Session.");
         }
 
         // 4. Find the first available Slot in that Parking Lot.
-        ParkingSlotEntity currentSlot = parkingSlotService.findFirstAvailableSlot(request.getParkingLotId());
+        ParkingSlot currentSlot = parkingSlotService.findFirstAvailableSlot(request.getParkingLotId());
         // Marked as Occupied if parking Slot is Available
         parkingSlotService.markSlotAsOccupied(currentSlot.getId());
 
 
         // 5. Create a new Session for current Request. Starting the Session of entered Vehicle.
-        ParkingSessionEntity newSession = parkingSessionService.createSession(vehicleEntity, currentSlot);
+        ParkingSession newSession = parkingSessionService.createSession(vehicle, currentSlot);
 
         // 6. Return the DTO
         return ParkingMapper.toTicketDTO(newSession);
@@ -91,17 +91,17 @@ public class ParkingOperationServiceImpl implements ParkingOperationService {
     @Transactional
     public BillDto exitVehicle(ExitRequestDto request) {
         // 1. Fetching
-        VehicleEntity vehicleEntity = vehicleService.findByVehicleNumber(request.getVehicleNumber())
+        Vehicle vehicle = vehicleService.findByVehicleNumber(request.getVehicleNumber())
                 .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found."));
 
-        ParkingSessionEntity session = parkingSessionService.findActiveSession(vehicleEntity)
+        ParkingSession session = parkingSessionService.findActiveSession(vehicle)
                 .orElseThrow(() -> new ResourceNotFoundException("No active session found."));
 
         // Pre-fetch Data before ending session (Prevents LazyLoad Exceptions)
-        Double basePrice = session.getParkingSlotEntity().getParkingLotEntity().getBasePricePerHour();
-        Long lotId = session.getParkingSlotEntity().getParkingLotEntity().getId();
-        Integer totalSlots = session.getParkingSlotEntity().getParkingLotEntity().getTotalSlots();
-        Long slotId = session.getParkingSlotEntity().getId();
+        Double basePrice = session.getParkingSlot().getParkingLot().getBasePricePerHour();
+        Long lotId = session.getParkingSlot().getParkingLot().getId();
+        Integer totalSlots = session.getParkingSlot().getParkingLot().getTotalSlots();
+        Long slotId = session.getParkingSlot().getId();
 
         // 2. Calculation
         LocalDateTime exitTime = LocalDateTime.now();

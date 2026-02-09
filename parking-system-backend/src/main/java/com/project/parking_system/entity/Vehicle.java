@@ -1,6 +1,6 @@
 package com.project.parking_system.entity;
 
-import com.project.parking_system.enums.VehicleTypeEnum;
+import com.project.parking_system.enums.VehicleType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,7 +18,7 @@ import lombok.*;
 @Getter
 @Setter
 @Builder
-public class VehicleEntity {
+public class Vehicle {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,6 +30,6 @@ public class VehicleEntity {
     // Enum -> Type of vehicle (CAR, BIKE)
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private VehicleTypeEnum vehicleTypeEnum;
+    private VehicleType vehicleType;
 
 }

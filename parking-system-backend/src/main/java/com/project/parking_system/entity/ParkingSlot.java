@@ -1,6 +1,6 @@
 package com.project.parking_system.entity;
 
-import com.project.parking_system.enums.SlotStatusEnum;
+import com.project.parking_system.enums.SlotStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,7 +18,7 @@ import lombok.*;
 @Builder
 @ToString(exclude = {"parkingLot"})
 @Table(name = "parking_slots")
-public class ParkingSlotEntity {
+public class ParkingSlot {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,14 +31,14 @@ public class ParkingSlotEntity {
     // Critical for finding free space during vehicle entry.
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private SlotStatusEnum slotStatusEnum;
+    private SlotStatus slotStatus;
 
     /**
      * FetchType.LAZY suggests we don't load parking_lot details unless requested.
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parking_lot_id", nullable = false)
-    private ParkingLotEntity parkingLotEntity;
+    private ParkingLot parkingLot;
 
 
 }

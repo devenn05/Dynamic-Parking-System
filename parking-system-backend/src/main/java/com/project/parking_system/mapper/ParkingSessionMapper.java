@@ -1,7 +1,7 @@
 package com.project.parking_system.mapper;
 
 import com.project.parking_system.dto.ParkingSessionDto;
-import com.project.parking_system.entity.ParkingSessionEntity;
+import com.project.parking_system.entity.ParkingSession;
 import org.springframework.stereotype.Component;
 
 /**
@@ -15,17 +15,17 @@ import org.springframework.stereotype.Component;
 public class ParkingSessionMapper {
 
     // Converts Parking Session into ParkingSessionDTO used in Session Operations.
-    public ParkingSessionDto convertToSessionDTO(ParkingSessionEntity session) {
+    public ParkingSessionDto convertToSessionDTO(ParkingSession session) {
         return ParkingSessionDto.builder()
                 .sessionId(session.getId())
-                .vehicleNumber(session.getVehicleEntity().getVehicleNumber())
-                .vehicleTypeEnum(session.getVehicleEntity().getVehicleTypeEnum())
-                .parkingLotName(session.getParkingSlotEntity().getParkingLotEntity().getName())
-                .slotNumber(session.getParkingSlotEntity().getSlotNumber())
+                .vehicleNumber(session.getVehicle().getVehicleNumber())
+                .vehicleType(session.getVehicle().getVehicleType())
+                .parkingLotName(session.getParkingSlot().getParkingLot().getName())
+                .slotNumber(session.getParkingSlot().getSlotNumber())
                 .entryTime(session.getEntryTime())
                 .exitTime(session.getExitTime())
                 .totalAmount(session.getTotalAmount())
-                .status(session.getSessionStatusEnum())
+                .status(session.getSessionStatus())
                 .build();
     }
 }

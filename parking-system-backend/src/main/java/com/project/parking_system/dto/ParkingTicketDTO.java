@@ -1,6 +1,6 @@
 package com.project.parking_system.dto;
 
-import com.project.parking_system.enums.VehicleTypeEnum;
+import com.project.parking_system.enums.VehicleType;
 import lombok.Builder;
 import lombok.Data;
 
@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 public class ParkingTicketDto {
     private Long sessionId;
     private String vehicleNumber;
-    private VehicleTypeEnum vehicleTypeEnum;
+    private VehicleType vehicleType;
     private Integer slotNumber;
     private String parkingLotName;
     private LocalDateTime entryTime;

@@ -2,7 +2,7 @@ package com.project.parking_system.service.impl;
 
 import com.project.parking_system.config.AppConstants;
 import com.project.parking_system.dto.BillingResultDto;
-import com.project.parking_system.enums.SlotStatusEnum;
+import com.project.parking_system.enums.SlotStatus;
 import com.project.parking_system.repository.ParkingSlotRepository;
 import com.project.parking_system.service.BillingService;
 import com.project.parking_system.utils.ParkingUtils;
@@ -77,7 +77,7 @@ public class BillingServiceImpl implements BillingService {
     private double getOccupancyMultiplier(Long parkingLotId, Integer totalSlots){
 
         // Gets the count of OCCUPIED slots in a Parking Lot
-        long occupiedSlots = parkingSlotRepository.countByParkingLotIdAndSlotStatus(parkingLotId, SlotStatusEnum.OCCUPIED);
+        long occupiedSlots = parkingSlotRepository.countByParkingLotIdAndSlotStatus(parkingLotId, SlotStatus.OCCUPIED);
 
         // Convert the count of occupied slots into percentage coverage.
         double occupancyPercentage = ((double) occupiedSlots / totalSlots) * 100;

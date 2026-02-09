@@ -1,7 +1,7 @@
 package com.project.parking_system.repository;
 
-import com.project.parking_system.entity.ParkingSessionEntity;
-import com.project.parking_system.enums.SessionStatusEnum;
+import com.project.parking_system.entity.ParkingSession;
+import com.project.parking_system.enums.SessionStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,22 +14,22 @@ import java.util.Optional;
  */
 
 @Repository
-public interface ParkingSessionRepository extends JpaRepository<ParkingSessionEntity, Long> {
+public interface ParkingSessionRepository extends JpaRepository<ParkingSession, Long> {
 
      //What it does: Finds a specific active session for a specific vehicle.
      //SQL: SELECT * FROM parking_sessions WHERE vehicle_id = ? AND status = ?
-    Optional<ParkingSessionEntity> findByVehicleIdAndSessionStatus(Long vehicleId, SessionStatusEnum status);
+    Optional<ParkingSession> findByVehicleIdAndSessionStatus(Long vehicleId, SessionStatus status);
 
     // What it does ->  Finds all sessions with a specific status (e.g., all ACTIVE cars system-wide).
     // SQL: SELECT * FROM parking_sessions WHERE SessionStatus = ?
-    List<ParkingSessionEntity> findBySessionStatus(SessionStatusEnum status);
+    List<ParkingSession> findBySessionStatus(SessionStatus status);
 
     // What it does -> Finds all sessions (History + Active) for a specific Parking Lot.
     // Get History (All statuses) for a specific Lot
-    List<ParkingSessionEntity> findByParkingSlotParkingLotId(Long parkingLotId);
+    List<ParkingSession> findByParkingSlotParkingLotId(Long parkingLotId);
 
     // What it does: Finds only ACTIVE sessions for a specific Parking Lot.
     // Get Active Only for a specific Lot
-    List<ParkingSessionEntity> findByParkingSlotParkingLotIdAndSessionStatus(Long parkingLotId, SessionStatusEnum status);
+    List<ParkingSession> findByParkingSlotParkingLotIdAndSessionStatus(Long parkingLotId, SessionStatus status);
 
 }
