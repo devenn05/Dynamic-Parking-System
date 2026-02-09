@@ -2,6 +2,7 @@ import { Component, OnInit, NgZone, signal, viewChild, ViewChild } from '@angula
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ParkingService } from '../../services/parking';
+import { NotificationService } from '../../services/notification';
 import { ParkingLot } from '../../models/models.interface';
 import { PLATFORM_ID, Inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
@@ -12,7 +13,10 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
-
+import {MatSort, Sort, MatSortModule} from '@angular/material/sort';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { ConfirmDialog } from '../shared/confirm-dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 /**
  * Parking Lot List Component
@@ -25,13 +29,19 @@ import { MatCardModule } from '@angular/material/card';
 
 @Component({
   selector: 'app-parking-lot-list',
-  imports: [FormsModule, CommonModule, MatTableModule, 
+  imports: [FormsModule, 
+    CommonModule, 
+    MatTableModule, 
     MatPaginatorModule, 
     MatButtonModule, 
     MatInputModule, 
     MatFormFieldModule, 
     MatIconModule,
-    MatCardModule],
+    MatCardModule,
+    MatSortModule,
+    MatSnackBarModule,
+    MatDialogModule
+  ],
   templateUrl: './parking-lot-list.html',
   styleUrl: '../../app.css',
 })
@@ -43,11 +53,10 @@ export class ParkingLotList implements OnInit {
 
   
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
 
   // List of lots fetched from serve
   lots = signal<ParkingLot[]>([])
-
-  errorMessage = signal<string>("")
 
   //State for Editing
   isEditing = signal<boolean>(false);
@@ -61,7 +70,12 @@ export class ParkingLotList implements OnInit {
     basePricePerHour: null as any
   };
 
-  constructor(private parkingService: ParkingService, @Inject(PLATFORM_ID) private platformId: Object) {}
+  constructor(
+    private parkingService: ParkingService, 
+    private notificationService: NotificationService,
+    private dialog: MatDialog, 
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
   ngOnInit(): void {
      if (isPlatformBrowser(this.platformId)){this.loadLots();}
@@ -73,16 +87,29 @@ export class ParkingLotList implements OnInit {
       this.lots.set(data)
       this.dataSource.data = data;
       this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
     } );
   }
 
-  // Handles creation of a new parking lot.
   createLot(){
+    const dialogRef = this.dialog.open(ConfirmDialog, {
+      width: '350px',
+      data: {
+        title: 'Confirm Parking Lot Entry',
+        message: `Are you sure you want to add this Parking Lot?`
+      }
+    });
 
-    // Confirmation Message box 
-    if(!confirm("Confirm Lot entry?")) return;
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.performLot();
+      }
+    });
+  }
 
-    this.errorMessage.set("")
+  // Handles creation of a new parking lot.
+  performLot(){
+
     this.parkingService.createLot(this.newLot).subscribe({
       next: () =>{
 
@@ -93,14 +120,14 @@ export class ParkingLotList implements OnInit {
         this.newLot = { name: '', location: '', totalSlots: null as any, basePricePerHour: null as any };
 
         // 3. Updates error message if Lot is added Succesfully.
-        this.errorMessage.set("Lot added Successfully")
+        this.notificationService.showSuccess("Parking Lot Created Successfully");
       },
       error: (err) =>{
           console.error("Backend Error:", err);
         if (err.error && err.error.message) {
-            this.errorMessage.set(err.error.message);
+          this.notificationService.showSuccess(err.error.message);
         } else {
-            this.errorMessage.set("Failed to create lot. Check inputs.");
+          this.notificationService.showSuccess("Failed to create lot. Check inputs.");
         }
       }
     });
@@ -120,24 +147,38 @@ export class ParkingLotList implements OnInit {
     };
   }
 
+  updateCurrentLot(){
+    const dialogRef = this.dialog.open(ConfirmDialog, {
+      width: '350px',
+      data: {
+        title: 'Update Parking Lot',
+        message: `Are you sure you want to Update this changes?`
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.updateLot();
+      }
+    });
+
+  }
+
   // 2. Called when you click "Update Lot" button
-  updateCurrentLot() {
-    if(!confirm("Confirm changes to this lot?")) return;
+  updateLot() {
 
     const id = this.editingId();
     if (!id) return; // Safety check
-
-    this.errorMessage.set("");
     
     // Call the new Service method
     this.parkingService.updateLot(id, this.newLot).subscribe({
       next: () => {
         this.loadLots();    // Refresh list
         this.cancelEdit();  // Reset form to normal
-        this.errorMessage.set("Lot Updated Successfully");
+        this.notificationService.showSuccess("Lot Updated Successfully");
       },
       error: (err) => {
-         this.errorMessage.set(err.error?.message || "Update Failed");
+        this.notificationService.showSuccess(err.error?.message || "Update Failed");
       }
     });
   }
@@ -148,7 +189,6 @@ export class ParkingLotList implements OnInit {
     this.editingId.set(null);
     // Clear form
     this.newLot = { name: '', location: '', totalSlots: null as any, basePricePerHour: null as any };
-    this.errorMessage.set("");
   }
 
 }

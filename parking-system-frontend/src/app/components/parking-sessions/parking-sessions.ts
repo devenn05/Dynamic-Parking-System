@@ -3,6 +3,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ParkingService } from '../../services/parking';
 import { ParkingSession, ParkingLot } from '../../models/models.interface';
+import { ConfirmDialog } from '../shared/confirm-dialog';
 
 // Material Imports
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -14,6 +15,10 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
+import {MatSort, Sort, MatSortModule} from '@angular/material/sort';
+import { NotificationService } from '../../services/notification';
+import { MatSnackBarModule } from '@angular/material/snack-bar'; 
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-parking-sessions',
@@ -29,7 +34,10 @@ import { MatCardModule } from '@angular/material/card';
     MatSelectModule,
     MatButtonModule,
     MatIconModule,
-    MatCardModule
+    MatCardModule,
+    MatSortModule,
+    MatSnackBarModule,
+    MatDialogModule
   ],
   templateUrl: './parking-sessions.html',
   styleUrl: '../../app.css',
@@ -46,14 +54,19 @@ export class ParkingSessions implements OnInit {
   // Paginators
   @ViewChild('activePaginator') activePaginator!: MatPaginator;
   @ViewChild('historyPaginator') historyPaginator!: MatPaginator;
+  @ViewChild('activeSort') activeSort!: MatSort;
+  @ViewChild('historySort') historySort!: MatSort;
 
   // Search State Signals
   lots = signal<ParkingLot[]>([]);
   selectedLotId = signal<number | null>(null);
   searchTerm = signal<string>('');
-  searchDate = signal<string>('');
 
-  constructor(private parkingService: ParkingService, @Inject(PLATFORM_ID) private platformId: Object) {
+  constructor(
+    private parkingService: ParkingService,
+    private notificationService: NotificationService, 
+    private dialog: MatDialog,
+    @Inject(PLATFORM_ID) private platformId: Object) {
     // Whenever filters change, update the tables
     effect(() => {
         this.applyFilters();
@@ -61,12 +74,13 @@ export class ParkingSessions implements OnInit {
   }
 
   ngOnInit(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      this.parkingService.getAllLots().subscribe(data => {
-        this.lots.set(data);
-        this.loadData();
+    this.parkingService.getAllLots().subscribe({
+        next: (data) => {
+           this.lots.set(data);
+           this.loadData();
+        },
+        error: (err) => this.notificationService.showError("Failed to connect to server")
       });
-    }
   }
 
   loadData() {
@@ -74,23 +88,23 @@ export class ParkingSessions implements OnInit {
       .subscribe(data => {
           this.activeDataSource.data = data;
           this.activeDataSource.paginator = this.activePaginator;
+          this.activeDataSource.sort = this.activeSort;
       });
 
     this.parkingService.getAllSessions(this.selectedLotId() || undefined)
       .subscribe(data => {
           this.historyDataSource.data = data;
           this.historyDataSource.paginator = this.historyPaginator;
+          this.historyDataSource.sort = this.historySort;
       });
   }
 
   applyFilters() {
     const term = this.searchTerm().toLowerCase();
-    const date = this.searchDate();
 
     const filterPredicate = (s: ParkingSession) => {
         const matchesVehicle = s.vehicleNumber.toLowerCase().includes(term);
-        const matchesDate = !date || s.entryTime.startsWith(date);
-        return matchesVehicle && matchesDate;
+        return matchesVehicle;
     };
 
     // Note: Since the backend doesn't filter by text/date, we do it frontend side
@@ -102,22 +116,37 @@ export class ParkingSessions implements OnInit {
     this.historyDataSource.filter = 'trigger';
   }
 
-  onTerminate(session: any) {
-    const confirmMsg = `MANUAL OVERRIDE:\nForce terminate vehicle: ${session.vehicleNumber}?`;
-    if (!confirm(confirmMsg)) return;
+  onTerminate(session: any){
+    const dialogRef = this.dialog.open(ConfirmDialog, {
+      width: '350px',
+      data: {
+        title: 'Confirm Termination',
+        message: `Terminate ${session.vehicleNumber} ?`
+      }
+    });
 
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.performTerminate(session);
+      }
+    });
+  }
+
+  performTerminate(session: any) {
     this.parkingService.terminateSession(session.sessionId).subscribe({
       next: () => {
-        alert("Session Terminated Successfully.");
+        this.notificationService.showSuccess("Session Terminated Successfully");
         this.loadData();
       },
-      error: (err) => alert("Failed to terminate")
+      error: (err) => {
+        const msg = err.error?.message || "Failed to terminate session";
+        this.notificationService.showError(msg);
+      }
     });
   }
 
   resetFilters() {
       this.searchTerm.set('');
-      this.searchDate.set('');
       this.selectedLotId.set(null);
       this.loadData();
   }

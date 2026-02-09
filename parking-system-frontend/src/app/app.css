@@ -32,11 +32,6 @@
    TABLES
    ========================= */
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
 
 th,
 td {
@@ -46,7 +41,6 @@ td {
 
 th {
   background-color: #007bff;
-  color: white;
 }
 
 /* =========================

@@ -8,19 +8,12 @@
   <a routerLink="/lots" style="color: white; margin-right: 15px; text-decoration: none;">Manage Lots</a>
   <a routerLink="/sessions" style="color: white; text-decoration: none;">Sessions</a>
 
-  <button (click)="toggleTheme()" style="padding: 5px 10px; font-size: 12px; cursor: pointer; margin-left: 10px; background-color: transparent;">
-    {{ isDarkMode() ? '☀️ Light Mode' : '🌙 Dark Mode' }}
-  </button>
-
 </nav>
 
 <div *ngIf="loadingService.isLoading | async" class="spinner-overlay">
   <div class="spinner"></div>
-<<<<<<< HEAD
   <p>Loading....Please wait</p>
-=======
   <p>Connecting to Parking System...</p>
->>>>>>> 637da4b (Backend Refactoring.)
 </div>
 
 

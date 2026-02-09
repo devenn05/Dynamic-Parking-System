@@ -5,10 +5,14 @@ import { ParkingService } from '../../services/parking';
 import { EntryRequest, ExitRequest, ParkingTicket, Bill, ParkingLot } from '../../models/models.interface';
 import { PLATFORM_ID, Inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { NotificationService } from '../../services/notification';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { ConfirmDialog } from '../shared/confirm-dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-parking-operations',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatSnackBarModule, MatDialogModule],
   templateUrl: './parking-operations.html',
   styleUrl: '../../app.css',
 })
@@ -22,11 +26,14 @@ export class ParkingOperations implements OnInit {
   
   bill = signal<Bill | null>(null);
   ticket = signal<ParkingTicket | null>(null);
-  errorMessage = signal<string>("");
 
   private messageTimer: any;
 
-  constructor(private parkingService: ParkingService, @Inject(PLATFORM_ID) private platformId: Object) {}
+  constructor(
+    private parkingService: ParkingService,
+    private notificationService: NotificationService,
+    private dialog: MatDialog, 
+    @Inject(PLATFORM_ID) private platformId: Object) {}
   
   ngOnInit(): void {
      if (isPlatformBrowser(this.platformId)){this.loadLots();} 
@@ -46,17 +53,32 @@ export class ParkingOperations implements OnInit {
     if (this.messageTimer) clearTimeout(this.messageTimer);
     this.ticket.set(null);
     this.bill.set(null);
-    this.errorMessage.set("");
   }
 
-  handleEntry(form: NgForm) {
-    if (!confirm("Confirm vehicle Entry?")) return;
+  handleEntry(form: NgForm){
+    const dialogRef = this.dialog.open(ConfirmDialog, {
+      width: '350px',
+      data: {
+        title: 'Confirm Entry',
+        message: `Generate ticket for ${this.entryData.vehicleNumber} (${this.entryData.vehicleType}) in Lot ${this.entryData.parkingLotId}?`
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.performEntry(form);
+      }
+    });
+  }
+
+  private performEntry(form: NgForm) {
     this.clearMessages(); 
 
     this.parkingService.entryVehicle(this.entryData).subscribe({
       next: (res) => {
         this.ticket.set(res);
         this.loadLots();
+        this.notificationService.showSuccess('Entry Approved: ${res.slotNumber} assigned');
 
         // Use resetForm to clear validation states (red text)
         form.resetForm({
@@ -68,19 +90,35 @@ export class ParkingOperations implements OnInit {
         this.messageTimer = setTimeout(() => this.ticket.set(null), 7000); 
       },
       error: (err) => {
-        this.errorMessage.set(err.error?.message || 'Error Occurred');
+        this.notificationService.showError(err.error?.message || 'Error Occurred');
       }
     });
   }
 
   handleExit(form: NgForm) {
-    if (!confirm("Confirm vehicle Exit?")) return;
+    const dialogRef = this.dialog.open(ConfirmDialog, {
+      width: '350px',
+      data: {
+        title: 'Confirm Exit',
+        message: `Generate bill and exit vehicle ${this.exitData.vehicleNumber}?`
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.performExit(form);
+      }
+    });
+  }
+
+  private performExit(form: NgForm) {
     this.clearMessages();
 
     this.parkingService.exitVehicle(this.exitData).subscribe({
       next: (res) => {
         this.bill.set(res);
         this.loadLots();
+        this.notificationService.showSuccess("Exit Vehicle Successful.")
         
         // Fully reset the exit form state
         form.resetForm();
@@ -88,7 +126,7 @@ export class ParkingOperations implements OnInit {
         this.messageTimer = setTimeout(() => this.bill.set(null), 15000); 
       },
       error: (err) => {
-        this.errorMessage.set(err.error?.message || 'Error Occurred');
+        this.notificationService.showError(err.error?.message || 'Error Occurred');
       }
     });
   }
@@ -104,6 +142,6 @@ export class ParkingOperations implements OnInit {
 
   get vehiclePattern(): string {
     // Regex for Standard and BH series
-    return "^([A-Z]{2}[0-9]{2}[A-Z]{1,3}[0-9]{4}|[0-9]{2}BH[0-9]{4}[A-Z]{1,2})$";
+    return "^([A-Z]{2}[0-9]{2}[A-Z]{0,3}[0-9]{4}|[0-9]{2}BH[0-9]{4}[A-Z]{1,2})$";
   }
 }
