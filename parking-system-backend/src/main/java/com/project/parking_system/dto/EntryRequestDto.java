@@ -14,6 +14,7 @@ import lombok.Data;
  */
 
 @Data
+@Builder
 public class EntryRequestDto {
 
     // The license plate number of the vehicle.

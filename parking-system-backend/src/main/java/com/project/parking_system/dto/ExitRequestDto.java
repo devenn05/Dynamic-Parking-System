@@ -11,6 +11,7 @@ import lombok.Data;
  */
 
 @Data
+@Builder
 public class ExitRequestDto {
 
     // The license plate number of the exiting vehicle.

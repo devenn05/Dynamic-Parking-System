@@ -50,14 +50,10 @@ public class ParkingOperationServiceImplTest {
     void setUp(){
 
         // Entry Request
-        entryRequest = new EntryRequestDto();
-        entryRequest.setVehicleNumber("MH12AB1234");
-        entryRequest.setVehicleType(VehicleType.CAR);
-        entryRequest.setParkingLotId(1L);
+        EntryRequestDto entryRequest = EntryRequestDto.builder().vehicleNumber("MH12AB1234").vehicleType(VehicleType.CAR).parkingLotId(1L).build();
 
         // Exit Request
-        exitRequest = new ExitRequestDto();
-        exitRequest.setVehicleNumber("MH12AB1234");
+        ExitRequestDto exitRequest = ExitRequestDto.builder().vehicleNumber("MH12AB1234").build();
 
         billingResult = BillingResultDto.builder()
                 .totalAmount(100.0)
