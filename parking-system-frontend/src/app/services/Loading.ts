@@ -9,17 +9,19 @@ export class LoadingService {
   private activeRequests = 0;
 
   show() {
-    this.activeRequests++;
-    // Only emit true if we have at least one active request
-    this.isLoading.next(true);
+    setTimeout(() => {
+        this.activeRequests++;
+        this.isLoading.next(true);
+    }, 0);
   }
 
   hide() {
-    this.activeRequests--;
-    // Only hide the spinner if ALL requests have finished
-    if (this.activeRequests <= 0) {
-      this.activeRequests = 0; // Prevent negative numbers
-      this.isLoading.next(false);
-    }
+    setTimeout(() => {
+        this.activeRequests--;
+        if (this.activeRequests <= 0) {
+            this.activeRequests = 0; 
+            this.isLoading.next(false);
+        }
+    }, 0);
   }
 }

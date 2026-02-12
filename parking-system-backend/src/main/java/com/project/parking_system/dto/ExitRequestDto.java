@@ -1,6 +1,8 @@
 package com.project.parking_system.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 import lombok.Data;
 
 /**
@@ -18,4 +20,8 @@ public class ExitRequestDto {
     // Must correspond to a vehicle currently having an 'ACTIVE' session.
     @NotBlank(message = "Vehicle Number cannot be empty.")
     private String vehicleNumber;
+
+    // To Check if user is using exitVehicle Method for valid ParkingLot only
+    @NotNull(message = "Parking Lot ID cannot be empty.")
+    private Long parkingLotId;
 }

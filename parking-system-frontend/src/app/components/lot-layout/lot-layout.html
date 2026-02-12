@@ -1,0 +1,29 @@
+<div style="background: #f5f5f5; border-bottom: 1px solid #ddd; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between;">
+      
+  <!-- Left: Lot Name -->
+  <div>
+     <h2 style="margin:0; color: #333;">{{ lotName }}</h2>
+     <small>Lot ID: {{ lotId }}</small>
+  </div>
+
+  <!-- Center: Lot Specific Navigation -->
+   <nav>
+    <a mat-button routerLink="operations" routerLinkActive="active-btn" color="primary">
+        <mat-icon>directions_car</mat-icon> Entry / Exit
+    </a>
+    <a mat-button routerLink="sessions" routerLinkActive="active-btn" color="primary">
+        <mat-icon>history</mat-icon> Sessions
+    </a>
+   </nav>
+
+  <!-- Right: Exit Button -->
+   <!-- Removed routerLink, added (click) -->
+   <button mat-stroked-button color="warn" (click)="handleExit()">
+      <mat-icon>logout</mat-icon> Exit Lot
+   </button>
+</div>
+
+<!-- The actual page content (Operations or Sessions) loads here -->
+<div style="padding: 20px;">
+    <router-outlet></router-outlet>
+</div>

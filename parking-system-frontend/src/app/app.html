@@ -1,20 +1,26 @@
-<!-- 
-  GLOBAL NAVIGATION BAR 
-  Present on all pages. Uses 'routerLink' to navigate without page reloads.
--->
-<nav style="background: #333; padding: 15px; color: white;">
-  <span style="font-weight: bold; margin-right: 20px;">Parking System</span>
-  <a routerLink="/operations" style="color: white; margin-right: 15px; text-decoration: none;">Entry/Exit</a>
-  <a routerLink="/lots" style="color: white; margin-right: 15px; text-decoration: none;">Manage Lots</a>
-  <a routerLink="/sessions" style="color: white; text-decoration: none;">Sessions</a>
+<nav style="background: #333; padding: 15px; color: white; display: flex; align-items: center;">
+  <span style="font-weight: bold; margin-right: 20px; font-size: 1.2rem;">Parking System</span>
+  
+  <div style="margin-left: auto;">
+      <!-- Link to the Home Page -->
+      <a routerLink="/" routerLinkActive="active-link" 
+         [routerLinkActiveOptions]="{exact: true}" 
+         style="color: white; margin-right: 20px; text-decoration: none; cursor:pointer;">
+         <mat-icon style="vertical-align: middle; font-size: 18px;">login</mat-icon> Lot Login
+      </a>
 
+      <!-- Link to the Admin Management Page -->
+      <a routerLink="/admin" routerLinkActive="active-link"
+         style="color: white; text-decoration: none; cursor:pointer;">
+         <mat-icon style="vertical-align: middle; font-size: 18px;">settings</mat-icon> Manage Lots
+      </a>
+  </div>
 </nav>
 
+<!-- Global Loading Spinner -->
 <div *ngIf="loadingService.isLoading | async" class="spinner-overlay">
   <div class="spinner"></div>
-  <p>Loading....Please wait</p>
-  <p>Connecting to Parking System...</p>
+  <p>Processing...</p>
 </div>
-
 
 <router-outlet></router-outlet>

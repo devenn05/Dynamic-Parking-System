@@ -1,9 +1,9 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { Component, Inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
-import { RouterOutlet, RouterLink  } from '@angular/router';
+import { RouterOutlet, RouterLink, RouterLinkActive  } from '@angular/router';
 import { LoadingService } from './services/Loading';
 import { CommonModule } from '@angular/common';
-
+import { MatIconModule } from '@angular/material/icon';
 /**
  * Root Application Component
  * -------------------------------------------------------------------------
@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, CommonModule ],
+  imports: [RouterOutlet, RouterLink, CommonModule, MatIconModule, RouterLinkActive ],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -23,38 +23,10 @@ export class App implements OnInit {
   constructor(
     @Inject(DOCUMENT) private document: Document,
     public loadingService: LoadingService,
-    @Inject(PLATFORM_ID) private platformId: Object // <--- Inject Platform ID
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   ngOnInit() {
-    // Check LocalStorage to remember preference
-    if (isPlatformBrowser(this.platformId)) {
-      const saved = localStorage.getItem('theme');
-      if (saved === 'dark') {
-        this.toggleTheme(true);
-      }
-    }
-  }
 
-  toggleTheme(forceDark?: boolean) {
-    const newState = forceDark ?? !this.isDarkMode();
-    
-    this.isDarkMode.set(newState);
-    
-    if (newState) {
-      this.document.body.classList.add('dark-theme');
-      
-      // Only write to localStorage if in Browser
-      if (isPlatformBrowser(this.platformId)) {
-        localStorage.setItem('theme', 'dark');
-      }
-    } else {
-      this.document.body.classList.remove('dark-theme');
-      
-      // Only write to localStorage if in Browser
-      if (isPlatformBrowser(this.platformId)) {
-        localStorage.setItem('theme', 'light');
-      }
-    }
   }
 }

@@ -11,19 +11,7 @@ export interface DialogData {
   selector: 'app-confirm-dialog',
   imports: [MatDialogModule, MatButtonModule],
   standalone: true,
-  template: `
-    <h2 mat-dialog-title>{{ data.title }}</h2>
-    <mat-dialog-content>
-      <p>{{ data.message }}</p>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <!-- "false" is returned if clicked Cancel -->
-      <button mat-button [mat-dialog-close]="false">Cancel</button>
-      
-      <!-- "true" is returned if clicked Confirm -->
-      <button mat-flat-button color="warn" [mat-dialog-close]="true">Confirm</button>
-    </mat-dialog-actions>
-  `
+  templateUrl: './confirm-dialog.html' 
 })
 export class ConfirmDialog {
   constructor(

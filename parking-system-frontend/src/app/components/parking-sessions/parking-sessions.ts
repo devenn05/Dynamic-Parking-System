@@ -1,8 +1,9 @@
-import { Component, OnInit, signal, ViewChild, AfterViewInit, Inject, PLATFORM_ID, effect } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, OnInit, signal, ViewChild, effect } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router'; // <--- NEW IMPORT
 import { ParkingService } from '../../services/parking';
-import { ParkingSession, ParkingLot } from '../../models/models.interface';
+import { ParkingSession } from '../../models/models.interface';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 
 // Material Imports
@@ -11,54 +12,39 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
+import { MatSelectModule } from '@angular/material/select'; // Might remove this if no other selects exist
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
-import {MatSort, Sort, MatSortModule} from '@angular/material/sort';
+import {MatSort, MatSortModule} from '@angular/material/sort';
 import { NotificationService } from '../../services/notification';
 import { MatSnackBarModule } from '@angular/material/snack-bar'; 
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-parking-sessions',
-  standalone: true,
   imports: [
-    CommonModule, 
-    FormsModule, 
-    MatTableModule, 
-    MatPaginatorModule, 
-    MatTabsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatButtonModule,
-    MatIconModule,
-    MatCardModule,
-    MatSortModule,
-    MatSnackBarModule,
-    MatDialogModule
+    CommonModule, FormsModule, MatTableModule, MatPaginatorModule, 
+    MatTabsModule, MatFormFieldModule, MatInputModule, MatSelectModule,
+    MatButtonModule, MatIconModule, MatCardModule, MatSortModule,
+    MatSnackBarModule, MatDialogModule
   ],
   templateUrl: './parking-sessions.html',
   styleUrl: '../../app.css',
 })
 export class ParkingSessions implements OnInit {
-  // Data Sources for the tables
   activeDataSource = new MatTableDataSource<ParkingSession>([]);
   historyDataSource = new MatTableDataSource<ParkingSession>([]);
 
-  // Columns for the tables
   activeColumns: string[] = ['vehicleNumber', 'vehicleType', 'parkingLotName', 'slotNumber', 'entryTime', 'actions'];
   historyColumns: string[] = ['vehicleNumber', 'vehicleType', 'parkingLotName', 'slotNumber', 'entryTime', 'exitTime', 'totalAmount', 'status'];
 
-  // Paginators
   @ViewChild('activePaginator') activePaginator!: MatPaginator;
   @ViewChild('historyPaginator') historyPaginator!: MatPaginator;
   @ViewChild('activeSort') activeSort!: MatSort;
   @ViewChild('historySort') historySort!: MatSort;
 
-  // Search State Signals
-  lots = signal<ParkingLot[]>([]);
+  // REMOVED 'lots' signal. We don't need a dropdown list anymore.
   selectedLotId = signal<number | null>(null);
   searchTerm = signal<string>('');
 
@@ -66,32 +52,35 @@ export class ParkingSessions implements OnInit {
     private parkingService: ParkingService,
     private notificationService: NotificationService, 
     private dialog: MatDialog,
-    @Inject(PLATFORM_ID) private platformId: Object) {
-    // Whenever filters change, update the tables
+    private route: ActivatedRoute // <--- INJECT ACTIVATED ROUTE
+  ) {
     effect(() => {
         this.applyFilters();
     });
   }
 
   ngOnInit(): void {
-    this.parkingService.getAllLots().subscribe({
-        next: (data) => {
-           this.lots.set(data);
-           this.loadData();
-        },
-        error: (err) => this.notificationService.showError("Failed to connect to server")
-      });
+    // <--- CRITICAL CHANGE: Get ID from URL, ignore everything else
+    this.route.parent?.params.subscribe(params => {
+       const id = +params['id'];
+       this.selectedLotId.set(id); // Set the Lot ID
+       this.loadData(); // Trigger the API call
+    });
   }
 
   loadData() {
-    this.parkingService.getActiveSessions(this.selectedLotId() || undefined)
+    const id = this.selectedLotId();
+    if (!id) return;
+
+    // We explicitly pass the ID from the URL, effectively filtering backend-side
+    this.parkingService.getActiveSessions(id)
       .subscribe(data => {
           this.activeDataSource.data = data;
           this.activeDataSource.paginator = this.activePaginator;
           this.activeDataSource.sort = this.activeSort;
       });
 
-    this.parkingService.getAllSessions(this.selectedLotId() || undefined)
+    this.parkingService.getAllSessions(id)
       .subscribe(data => {
           this.historyDataSource.data = data;
           this.historyDataSource.paginator = this.historyPaginator;
@@ -100,17 +89,12 @@ export class ParkingSessions implements OnInit {
   }
 
   applyFilters() {
+    // Simple Vehicle Text Search filter
     const term = this.searchTerm().toLowerCase();
+    const filterPredicate = (s: ParkingSession) => s.vehicleNumber.toLowerCase().includes(term);
 
-    const filterPredicate = (s: ParkingSession) => {
-        const matchesVehicle = s.vehicleNumber.toLowerCase().includes(term);
-        return matchesVehicle;
-    };
-
-    // Note: Since the backend doesn't filter by text/date, we do it frontend side
-    // on the already fetched arrays to keep things snappy.
     this.activeDataSource.filterPredicate = filterPredicate;
-    this.activeDataSource.filter = 'trigger'; // dummy value to trigger filter
+    this.activeDataSource.filter = 'trigger'; 
 
     this.historyDataSource.filterPredicate = filterPredicate;
     this.historyDataSource.filter = 'trigger';
@@ -146,8 +130,8 @@ export class ParkingSessions implements OnInit {
   }
 
   resetFilters() {
+      // <--- CHANGED: Just clear text, KEEP the lot ID
       this.searchTerm.set('');
-      this.selectedLotId.set(null);
       this.loadData();
   }
 }

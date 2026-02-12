@@ -2,6 +2,7 @@ package com.project.parking_system.service;
 
 import com.project.parking_system.BaseTestIT;
 import com.project.parking_system.dto.*;
+import com.project.parking_system.entity.ParkingLot;
 import com.project.parking_system.entity.ParkingSession;
 import com.project.parking_system.entity.ParkingSlot;
 import com.project.parking_system.entity.Vehicle;
@@ -31,6 +32,7 @@ public class ParkingOperationServiceIT extends BaseTestIT {
     @Autowired private ParkingSlotRepository parkingSlotRepository;
     @Autowired private ParkingSessionRepository parkingSessionRepository;
     @Autowired private VehicleRepository vehicleRepository;
+    @Autowired private ParkingSessionService parkingSessionService;
 
     @BeforeEach
     void setUp(){
@@ -50,10 +52,15 @@ public class ParkingOperationServiceIT extends BaseTestIT {
                 .build();
 
         ParkingLotDto currentLot =  parkingLotService.createParkingLot(lotRequest);
+        Optional<ParkingLot> lot = parkingLotRepository.findById(currentLot.getId());
         Long parkingLotId = currentLot.getId();
 
-        // Entry
+        // Lot availability
+        assertNotNull(parkingLotService.getAllParkingLots());
+        assertEquals(lot, parkingLotService.getParkingLotById(parkingLotId));
 
+
+        // Entry
         EntryRequestDto entryRequest = EntryRequestDto.builder()
                 .vehicleNumber("MH04AB1234")
                 .vehicleType(VehicleType.CAR)
@@ -74,7 +81,6 @@ public class ParkingOperationServiceIT extends BaseTestIT {
 
 
         // Exit
-
         ExitRequestDto exitRequest = ExitRequestDto.builder().vehicleNumber("MH04AB1234").build();
 
         BillDto bill = parkingOperationService.exitVehicle(exitRequest);
@@ -88,5 +94,35 @@ public class ParkingOperationServiceIT extends BaseTestIT {
 
         Optional<ParkingSlot> exitSlot = parkingSlotRepository.findById(exitSession.get().getParkingSlot().getId());
         assertEquals(SlotStatus.AVAILABLE, exitSlot.get().getSlotStatus());
+
+        // Billing
+        assertEquals(0.0, bill.getTotalAmount());
+    }
+
+    @Test
+    void terminationTesting(){
+
+        ParkingLotRequestDto lotRequest = ParkingLotRequestDto.builder()
+                .name("Test Lot")
+                .location("Test Location")
+                .basePricePerHour(10.0)
+                .totalSlots(10)
+                .build();
+
+        ParkingLotDto currentLot =  parkingLotService.createParkingLot(lotRequest);
+        Long parkingLotId = currentLot.getId();
+
+        EntryRequestDto entryRequest = EntryRequestDto.builder()
+                .vehicleNumber("MH04AB1234")
+                .vehicleType(VehicleType.CAR)
+                .parkingLotId(parkingLotId)
+                .build();
+
+        ParkingTicketDto ticket = parkingOperationService.enterVehicle(entryRequest);
+
+        parkingSessionService.terminateSession(ticket.getSessionId());
+
+        Optional<ParkingSession> currSession = parkingSessionRepository.findById(ticket.getSessionId());
+        assertEquals(SessionStatus.TERMINATED, currSession.get().getSessionStatus());
     }
 }

@@ -1,9 +1,18 @@
 <div class="container">
 
+  <!-- Status Header -->
+  <div style="margin-bottom: 20px; padding: 10px; background: #e3f2fd; border-left: 5px solid #2196f3; border-radius: 4px;" *ngIf="currentLot()">
+      <strong style="font-size: 1.1em;">Operational Status:</strong>
+      <span style="margin-left: 10px;">Available Slots: </span>
+      <span [style.color]="currentLot()?.availableSlots === 0 ? 'red' : 'green'" style="font-weight: bold;">
+          {{ currentLot()?.availableSlots }} / {{ currentLot()?.totalSlots }}
+      </span>
+  </div>
+
   <div class="row">
 
     <!-- ENTRY SECTION -->
-    <div class="column" *ngIf="hasLots(); else noLots">
+    <div class="column">
       <div class="card">
         <h3>Vehicle Entry</h3>
 
@@ -20,7 +29,7 @@
             [pattern]="vehiclePattern" 
           />
           
-           <!-- Visual error: only shows if invalid AND touched -->
+           <!-- Visual error -->
            <div *ngIf="entryForm.controls['vNum']?.invalid && entryForm.controls['vNum']?.touched" style="color: red; font-size: 0.8em;">
              Invalid Format. Standard or BH series only.
            </div>
@@ -31,28 +40,18 @@
             <option value="BIKE">BIKE</option>
           </select>
 
-          <label>Parking Lot:</label>
-          <select [(ngModel)]="entryData.parkingLotId" name="pLot" required>
-            <option
-              *ngFor="let lot of lots()"
-              [value]="lot.id"
-              [disabled]="lot.availableSlots === 0"
-            >
-              {{ lot.name }} ({{ lot.availableSlots }} slots free)
-            </option>
-          </select>
+          <!-- Dropdown removed. Logic handled in TS via URL ID -->
 
           <button
             type="submit"
-            [disabled]="!entryForm.valid"
-            [style.opacity]="!entryForm.valid ? '0.5' : '1'"
+            [disabled]="!entryForm.valid || currentLot()?.availableSlots === 0"
+            [style.opacity]="(!entryForm.valid || currentLot()?.availableSlots === 0) ? '0.5' : '1'"
           >
-            Park Vehicle
+            {{ currentLot()?.availableSlots === 0 ? 'LOT FULL' : 'Park Vehicle' }}
           </button>
         </form>
         
-        <!-- TICKET RECEIPT DISPLAY -->
-        <!-- Only shows after successful entry -->
+        <!-- TICKET RECEIPT -->
         <div *ngIf="ticket()" class="ticket">
           <h4 style="color: black;">✅ TICKET ISSUED</h4>
           <p style="font-size: 0.9em; color: black; margin-bottom: 10px;">
@@ -68,15 +67,6 @@
         </div>
       </div>
     </div>
-
-    <!-- NO LOTS FALLBACK -->
-    <ng-template #noLots>
-      <div class="column">
-        <div class="card error">
-          No parking lots available. Please create a parking lot first.
-        </div>
-      </div>
-    </ng-template>
 
     <!-- EXIT SECTION -->
     <div class="column">
@@ -106,7 +96,7 @@
           </button>
         </form>
 
-         <!-- BILL RECEIPT DISPLAY -->
+         <!-- BILL RECEIPT -->
         <div *ngIf="bill()" class="bill">
           <h4 style="color: black;">🧾 BILL GENERATED</h4>
           
@@ -122,7 +112,6 @@
                 <span *ngIf="bill()?.duration! > 30"> (Including Free 30 minutes)</span>
              </p>
              
-             <!-- Only show billing formula if amount > 0 -->
              <div *ngIf="bill()?.totalAmount! > 0; else freeParking">
                  <p>Billable Hours: {{ bill()?.billableHours }} hrs</p>
                  <p>Surge Multiplier: x{{ bill()?.occupancyMultiplier }} (Lot Occupancy)</p>
@@ -135,7 +124,6 @@
                  <p><strong>Status: FREE (Under 30 mins)</strong></p>
              </ng-template>
           </div>
-
           
           <p style="font-size: 0.8em; color: #666;">
             Entry Time: {{ bill()?.entryTime | date:'medium' }}

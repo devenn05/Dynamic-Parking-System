@@ -190,5 +190,32 @@ export class ParkingLotList implements OnInit {
     // Clear form
     this.newLot = { name: '', location: '', totalSlots: null as any, basePricePerHour: null as any };
   }
+  confirmDelete(lot: ParkingLot) {
+    const dialogRef = this.dialog.open(ConfirmDialog, {
+      width: '350px',
+      data: {
+        title: 'Delete Parking Lot?',
+        message: `Are you sure you want to delete '${lot.name}'? This cannot be undone.`
+      }
+    });
 
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.deleteLot(lot.id);
+      }
+    });
+  }
+
+  deleteLot(id: number) {
+    this.parkingService.deleteLot(id).subscribe({
+      next: () => {
+        this.notificationService.showSuccess("Parking Lot Deleted");
+        this.loadLots(); // Refresh table
+      },
+      error: (err) => {
+        const msg = err.error?.message || "Failed to delete lot (Check if active cars exist)";
+        this.notificationService.showError(msg);
+      }
+    });
+  }
 }

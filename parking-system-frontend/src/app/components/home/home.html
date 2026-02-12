@@ -1,0 +1,22 @@
+<div class="container" style="display: flex; justify-content: center; margin-top: 50px;">
+      <mat-card style="width: 400px; padding: 20px; text-align: center;">
+        <h2 style="margin-bottom: 20px;">Parking Lot Login</h2>
+        <p style="color: gray; margin-bottom: 20px;">Select a location to manage operations</p>
+
+        <mat-form-field appearance="outline" style="width: 100%;">
+          <mat-label>Select Parking Lot</mat-label>
+          <mat-select [(ngModel)]="selectedLotId">
+            <mat-option *ngFor="let lot of lots()" [value]="lot.id">
+              {{ lot.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" 
+                style="width: 100%; height: 50px; font-size: 16px;" 
+                [disabled]="!selectedLotId"
+                (click)="enterLot()">
+          Enter Dashboard <mat-icon>arrow_forward</mat-icon>
+        </button>
+      </mat-card>
+    </div>

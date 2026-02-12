@@ -3,12 +3,15 @@ package com.project.parking_system.service.impl;
 import com.project.parking_system.dto.ParkingLotDto;
 import com.project.parking_system.dto.ParkingLotRequestDto;
 import com.project.parking_system.entity.ParkingLot;
+import com.project.parking_system.entity.ParkingSession;
 import com.project.parking_system.entity.ParkingSlot;
+import com.project.parking_system.enums.SessionStatus;
 import com.project.parking_system.enums.SlotStatus;
 import com.project.parking_system.exception.BusinessException;
 import com.project.parking_system.exception.ResourceNotFoundException;
 import com.project.parking_system.mapper.ParkingLotMapper;
 import com.project.parking_system.repository.ParkingLotRepository;
+import com.project.parking_system.repository.ParkingSessionRepository;
 import com.project.parking_system.repository.ParkingSlotRepository;
 import com.project.parking_system.service.ParkingLotService;
 import com.project.parking_system.service.ParkingSlotService;
@@ -32,6 +35,7 @@ public class ParkingLotServiceImpl implements ParkingLotService {
     private final ParkingLotRepository parkingLotRepository;
     private final ParkingSlotService parkingSlotService;
     private final ParkingSlotRepository parkingSlotRepository;
+    private final ParkingSessionRepository parkingSessionRepository;
 
     //Creates a new lot.
     //Transactional: Ensures that both the Lot and its Slots are saved. If slot generation fails, the Lot is rolled back.
@@ -133,7 +137,31 @@ public class ParkingLotServiceImpl implements ParkingLotService {
         dto.setAvailableSlots((int) available);
 
         return dto;
+    }
 
+    // To delete a Parking Lot
+    @Override
+    @Transactional
+    public void deleteParkingLot(Long id){
+        // Checks if the lot exits
+        ParkingLot currentLot = parkingLotRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Lot not found"));
+
+        // Finds the total Active Session in that ParkingLot
+        List<ParkingSession> activeSessions = parkingSessionRepository.findByParkingSlotParkingLotIdAndSessionStatus(id, SessionStatus.ACTIVE);
+
+        // Checks if a Lot has an Active Parking Session
+        if (!activeSessions.isEmpty()) throw new BusinessException("Cannot delete a Parking lot with Active Parking Session.");
+
+        // Delete all the Sessions that is affiliated to that Parking Lot Slots
+        List<ParkingSession> allSessions = parkingSessionRepository.findByParkingSlotParkingLotId(id);
+        parkingSessionRepository.deleteAll(allSessions);
+
+        // Delete all the Slots affiliated to that Parking Lot
+        List<ParkingSlot> allSlots = parkingSlotRepository.findByParkingLotIdOrderBySlotNumberAsc(id);
+        parkingSlotRepository.deleteAll(allSlots);
+
+        // Delete Parking Lot
+        parkingLotRepository.deleteById(id);
     }
 }
 

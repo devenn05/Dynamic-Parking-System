@@ -1,80 +1,73 @@
 <div class="container">
-  <h2 class="mat-headline-medium">Parking Sessions</h2>
-
+  
   <!-- Filters Card -->
   <mat-card class="card" style="margin-bottom: 20px; padding: 15px;">
     <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
       
-      <!-- 1. Lot Selection -->
-      <mat-form-field appearance="outline" style="width: 40vh;">
-        <mat-label>Select Parking Lot</mat-label>
-        <mat-select [ngModel]="selectedLotId()" (ngModelChange)="selectedLotId.set($event); loadData()">
-          <mat-option [value]="null">All Lots</mat-option>
-          <mat-option *ngFor="let lot of lots()" [value]="lot.id">{{ lot.name }}</mat-option>
-        </mat-select>
-      </mat-form-field>
+      <!-- REMOVED: Select Parking Lot Mat-Form-Field is GONE -->
 
-      <!-- 2. Vehicle Search -->
+      <!-- 1. Vehicle Search (Only control left besides Reset) -->
       <mat-form-field appearance="outline" style="flex: 1;">
         <mat-label>Search Vehicle No.</mat-label>
         <input matInput [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)" placeholder="e.g. MH12">
         <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
 
-      <!-- 3. Reset -->
+      <!-- 2. Reset -->
       <button mat-stroked-button color="warn" (click)="resetFilters()">
-        <mat-icon>refresh</mat-icon> Reset
+        <mat-icon>refresh</mat-icon> Reset Search
       </button>
     </div>
   </mat-card>
 
-  <!-- MATERIAL TABS -->
+  <!-- MATERIAL TABS (Rest of the file is unchanged, just pasting context) -->
   <mat-tab-group animationDuration="0ms">
     
     <!-- ACTIVE TAB -->
     <mat-tab label="Active Vehicles">
       <div class="mat-elevation-z2">
-        <table mat-table [dataSource]="activeDataSource" matSort #activeSort="matSort">
+         <!-- ... table content same as before ... -->
+          <table mat-table [dataSource]="activeDataSource" matSort #activeSort="matSort">
           
-          <ng-container matColumnDef="vehicleNumber">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Vehicle </th>
-            <td mat-cell *matCellDef="let s"> {{s.vehicleNumber}} </td>
-          </ng-container>
-
-          <ng-container matColumnDef="vehicleType">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Type </th>
-            <td mat-cell *matCellDef="let s"> {{s.vehicleType}} </td>
-          </ng-container>
-
-          <ng-container matColumnDef="parkingLotName">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Parking Lot </th>
-            <td mat-cell *matCellDef="let s"> {{s.parkingLotName}} </td>
-          </ng-container>
-
-          <ng-container matColumnDef="slotNumber">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Slot </th>
-            <td mat-cell *matCellDef="let s"> {{s.slotNumber}} </td>
-          </ng-container>
-
-          <ng-container matColumnDef="entryTime">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Entry Time (mm/dd/yyyy)</th>
-            <td mat-cell *matCellDef="let s"> {{s.entryTime | date:'short'}} </td>
-          </ng-container>
-
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef style="text-align: center;"> Actions </th>
-            <td mat-cell *matCellDef="let s" style="text-align: center;">
-              <button mat-mini-fab color="warn" (click)="onTerminate(s)" title="Terminate Session">
-                <mat-icon>power_settings_new</mat-icon>
-              </button>
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="activeColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: activeColumns;"></tr>
-        </table>
-        
-        <mat-paginator #activePaginator [pageSize]="5" [pageSizeOptions]="[5, 10, 20]"></mat-paginator>
+            <ng-container matColumnDef="vehicleNumber">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header> Vehicle </th>
+              <td mat-cell *matCellDef="let s"> {{s.vehicleNumber}} </td>
+            </ng-container>
+  
+            <ng-container matColumnDef="vehicleType">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header> Type </th>
+              <td mat-cell *matCellDef="let s"> {{s.vehicleType}} </td>
+            </ng-container>
+  
+            <ng-container matColumnDef="parkingLotName">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header> Parking Lot </th>
+              <td mat-cell *matCellDef="let s"> {{s.parkingLotName}} </td>
+            </ng-container>
+  
+            <ng-container matColumnDef="slotNumber">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header> Slot </th>
+              <td mat-cell *matCellDef="let s"> {{s.slotNumber}} </td>
+            </ng-container>
+  
+            <ng-container matColumnDef="entryTime">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header> Entry Time (mm/dd/yyyy)</th>
+              <td mat-cell *matCellDef="let s"> {{s.entryTime | date:'short'}} </td>
+            </ng-container>
+  
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef style="text-align: center;"> Actions </th>
+              <td mat-cell *matCellDef="let s" style="text-align: center;">
+                <button mat-mini-fab color="warn" (click)="onTerminate(s)" title="Terminate Session">
+                  <mat-icon>power_settings_new</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+  
+            <tr mat-header-row *matHeaderRowDef="activeColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: activeColumns;"></tr>
+          </table>
+          
+          <mat-paginator #activePaginator [pageSize]="5" [pageSizeOptions]="[5, 10, 20]"></mat-paginator>
       </div>
     </mat-tab>
 

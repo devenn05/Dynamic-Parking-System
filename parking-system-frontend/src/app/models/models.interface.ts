@@ -35,6 +35,7 @@ export interface EntryRequest{
 // Sent when a vehicle attempts to exit.
 export interface ExitRequest{
     vehicleNumber: string;
+    parkingLotId: number;
 }
 
 // Response received after a successful entry.

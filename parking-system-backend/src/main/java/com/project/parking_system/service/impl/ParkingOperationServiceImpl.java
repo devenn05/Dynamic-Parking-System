@@ -97,6 +97,12 @@ public class ParkingOperationServiceImpl implements ParkingOperationService {
         ParkingSession session = parkingSessionService.findActiveSession(vehicle)
                 .orElseThrow(() -> new ResourceNotFoundException("No active session found."));
 
+        // To validate if the Vehicle is affiliated with the given Parking Lot only
+        Long actualLotId = session.getParkingSlot().getParkingLot().getId();
+        Long exitLotId = request.getParkingLotId();
+
+        if (!actualLotId.equals(exitLotId)) throw new BusinessException("Vehicle is not parked in Parking Lot Id: " + request.getParkingLotId());
+
         // Pre-fetch Data before ending session (Prevents LazyLoad Exceptions)
         Double basePrice = session.getParkingSlot().getParkingLot().getBasePricePerHour();
         Long lotId = session.getParkingSlot().getParkingLot().getId();

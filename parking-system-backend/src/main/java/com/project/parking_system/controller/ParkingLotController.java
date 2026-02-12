@@ -65,4 +65,11 @@ public class ParkingLotController {
     public ResponseEntity<ParkingLotDto> updateParkingLot(@PathVariable Long id, @Valid @RequestBody ParkingLotRequestDto request) {
         return ResponseEntity.ok(parkingLotService.updateParkingLot(id, request));
     }
+
+    // 6. Delete Parking Lot
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteParkingLot(@PathVariable Long id){
+        parkingLotService.deleteParkingLot(id);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -3,6 +3,8 @@ import { ParkingLotList } from './components/parking-lot-list/parking-lot-list';
 import { Component } from '@angular/compiler';
 import { ParkingOperations } from './components/parking-operations/parking-operations';
 import { ParkingSessions } from './components/parking-sessions/parking-sessions';
+import { HomeComponent } from './components/home/home';
+import { LotLayoutComponent } from './components/lot-layout/lot-layout';
 
 /**
  * Route Configuration
@@ -10,15 +12,20 @@ import { ParkingSessions } from './components/parking-sessions/parking-sessions'
  */
 
 export const routes: Routes = [
-    // Redirect empty path to the Operations dashboard (default view)
-    { path: '', redirectTo: 'operations', pathMatch: 'full' },
+    // 1. HOME: Dropdown to select a lot
+    { path: '', component: HomeComponent },
 
-    // 'Manage Lots' Screen - Create & List Parking Lots
-    {path: 'lots', component: ParkingLotList},
+    // 2. ADMIN: Manage lots (Create/Edit/Delete)
+    { path: 'admin', component: ParkingLotList },
 
-    // 'Entry/Exit' Screen - Handle vehicle processing
-    {path: 'operations', component: ParkingOperations},
-
-    // 'Sessions' Screen - View History and Active vehicles
-    {path: 'sessions', component: ParkingSessions}
+    // 3. LOT DASHBOARD: Nested routes for specific lot operations
+    { 
+        path: 'lot/:id', 
+        component: LotLayoutComponent, 
+        children: [
+            { path: '', redirectTo: 'operations', pathMatch: 'full' },
+            { path: 'operations', component: ParkingOperations },
+            { path: 'sessions', component: ParkingSessions }
+        ]
+    }
 ];

@@ -10,7 +10,7 @@ export class NotificationService {
 
   showSuccess(message: string): void {
     this.snackBar.open(message, 'OK', {
-      duration: 5000,
+      duration: 10000,
       horizontalPosition: 'center',
       verticalPosition: 'top',
       panelClass: ['snackbar-success', 'snackbar-large']
@@ -19,7 +19,7 @@ export class NotificationService {
 
   showError(message: string): void {
     this.snackBar.open(message, 'CLOSE', {
-      duration: 7000,
+      duration: 10000,
       horizontalPosition: 'center',
       verticalPosition: 'top',
       panelClass: ['snackbar-error', 'snackbar-large']

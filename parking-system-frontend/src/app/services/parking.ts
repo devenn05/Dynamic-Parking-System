@@ -16,7 +16,7 @@ import { HttpClient } from '@angular/common/http';
 export class ParkingService {
   
   // Base URL pointing to the local Spring Boot Server
-  private baseUrl = 'https://parking-system-backend-k8ad.onrender.com/api'
+  private baseUrl = 'http://localhost:8080/api'
 
   constructor(private http: HttpClient){}
 
@@ -31,6 +31,12 @@ export class ParkingService {
     return this.http.get<ParkingLot[]>(`${this.baseUrl}/parking-lots`);
   }
 
+  //GET /api/parking-lot/{id}
+  // Get Parking Lot by id
+  getParkingLotById(lotId: number): Observable<ParkingLot>{
+    return this.http.get<ParkingLot>(`${this.baseUrl}/parking-lots/${lotId}`)
+  }
+
   //POST /api/parking-lots
   //Creates a new parking lot configuration.
   createLot(lot: any): Observable<ParkingLot>{
@@ -43,10 +49,16 @@ export class ParkingService {
     return this.http.get<ParkingSlot[]>(`${this.baseUrl}/parking-lots/${lotId}/slots`)
   }
 
-  // PUT http://localhost:8080/api/parking-lots/{id}
+  // PUT /api/parking-lots/{id}
   // Update Parking Lot
   updateLot(id: number, lotData: any): Observable<ParkingLot> {
     return this.http.put<ParkingLot>(`${this.baseUrl}/parking-lots/${id}`, lotData);
+  }
+
+  // DELETE /api/parking-lot/{id}
+  // Delete ParkingLot
+  deleteLot(id: number): Observable<void>{
+    return this.http.delete<void>(`${this.baseUrl}/parking-lots/${id}`)
   }
 
   // POST /api/parking/entry

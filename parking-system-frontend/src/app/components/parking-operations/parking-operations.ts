@@ -1,10 +1,9 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router'; // <--- NEW IMPORT
 import { ParkingService } from '../../services/parking';
 import { EntryRequest, ExitRequest, ParkingTicket, Bill, ParkingLot } from '../../models/models.interface';
-import { PLATFORM_ID, Inject } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
 import { NotificationService } from '../../services/notification';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { ConfirmDialog } from '../shared/confirm-dialog';
@@ -18,34 +17,40 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 })
 export class ParkingOperations implements OnInit {
 
-  lots = signal<ParkingLot[]>([]);
-  hasLots = signal<boolean>(true);
+  // We no longer need a list of 'lots'. We just need the details of the CURRENT lot.
+  currentLot = signal<ParkingLot | null>(null);
+  currentLotId: number = 0; 
   
   entryData: EntryRequest = { vehicleNumber: '', vehicleType: 'CAR', parkingLotId: 0 };
-  exitData: ExitRequest = { vehicleNumber: '' };
+  exitData: ExitRequest = { vehicleNumber: '', parkingLotId: 0 };
   
   bill = signal<Bill | null>(null);
   ticket = signal<ParkingTicket | null>(null);
-
   private messageTimer: any;
 
   constructor(
     private parkingService: ParkingService,
     private notificationService: NotificationService,
-    private dialog: MatDialog, 
-    @Inject(PLATFORM_ID) private platformId: Object) {}
+    private dialog: MatDialog,
+    private route: ActivatedRoute
+  ) {}
   
   ngOnInit(): void {
-     if (isPlatformBrowser(this.platformId)){this.loadLots();} 
+    // Get ID from the Parent Route (/lot/:id/operations)
+    this.route.parent?.params.subscribe(params => {
+       this.currentLotId = +params['id']; 
+       this.entryData.parkingLotId = this.currentLotId;
+       this.exitData.parkingLotId = this.currentLotId; 
+    });
   }
 
-  loadLots(): void {
-    this.parkingService.getAllLots().subscribe(data => {
-      this.lots.set(data);
-      this.hasLots.set(data.length > 0);
-      if (this.lots().length > 0 && !this.entryData.parkingLotId) {
-        this.entryData.parkingLotId = data[0].id;
-      }
+  // <--- NEW: Only fetch info for THIS lot to see availability
+  loadCurrentLotStatus(): void {
+    this.parkingService.getParkingLotById(this.currentLotId).subscribe({
+      next: (lot) => {
+        this.currentLot.set(lot);
+      },
+      error: () => this.notificationService.showError("Failed to load lot details")
     });
   }
 
@@ -56,11 +61,17 @@ export class ParkingOperations implements OnInit {
   }
 
   handleEntry(form: NgForm){
+    // Validation check for full lot
+    if (this.currentLot() && this.currentLot()!.availableSlots === 0) {
+      this.notificationService.showError("This lot is full!");
+      return;
+    }
+
     const dialogRef = this.dialog.open(ConfirmDialog, {
       width: '350px',
       data: {
         title: 'Confirm Entry',
-        message: `Generate ticket for ${this.entryData.vehicleNumber} (${this.entryData.vehicleType}) in Lot ${this.entryData.parkingLotId}?`
+        message: `Generate ticket for ${this.entryData.vehicleNumber}?`
       }
     });
 
@@ -74,18 +85,21 @@ export class ParkingOperations implements OnInit {
   private performEntry(form: NgForm) {
     this.clearMessages(); 
 
+    // entryData.parkingLotId is already set in ngOnInit
     this.parkingService.entryVehicle(this.entryData).subscribe({
       next: (res) => {
         this.ticket.set(res);
-        this.loadLots();
-        this.notificationService.showSuccess('Entry Approved: ${res.slotNumber} assigned');
+        this.loadCurrentLotStatus(); // Refresh slot count
+        this.notificationService.showSuccess(`Entry Approved: ${res.slotNumber} assigned`);
 
-        // Use resetForm to clear validation states (red text)
         form.resetForm({
-          vType: this.entryData.vehicleType,
-          pLot: this.entryData.parkingLotId,
+          vType: 'CAR',
           vNum: ''
         });
+        
+        // RE-ASSIGN the ID after reset because resetForm wipes it
+        this.entryData.parkingLotId = this.currentLotId; 
+        this.entryData.vehicleType = 'CAR';
 
         this.messageTimer = setTimeout(() => this.ticket.set(null), 7000); 
       },
@@ -96,6 +110,7 @@ export class ParkingOperations implements OnInit {
   }
 
   handleExit(form: NgForm) {
+    // ... exit logic remains mostly the same ...
     const dialogRef = this.dialog.open(ConfirmDialog, {
       width: '350px',
       data: {
@@ -113,14 +128,13 @@ export class ParkingOperations implements OnInit {
 
   private performExit(form: NgForm) {
     this.clearMessages();
-
+    this.exitData.parkingLotId = this.currentLotId; 
     this.parkingService.exitVehicle(this.exitData).subscribe({
       next: (res) => {
         this.bill.set(res);
-        this.loadLots();
+        this.loadCurrentLotStatus(); // Refresh slot count
         this.notificationService.showSuccess("Exit Vehicle Successful.")
         
-        // Fully reset the exit form state
         form.resetForm();
 
         this.messageTimer = setTimeout(() => this.bill.set(null), 15000); 
@@ -131,7 +145,6 @@ export class ParkingOperations implements OnInit {
     });
   }
   
-  // Format input value while preserving Angular model state
   formatVehicleNumber(type: 'ENTRY' | 'EXIT') {
     if (type === 'ENTRY') {
       this.entryData.vehicleNumber = this.entryData.vehicleNumber.toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -141,7 +154,6 @@ export class ParkingOperations implements OnInit {
   }
 
   get vehiclePattern(): string {
-    // Regex for Standard and BH series
     return "^([A-Z]{2}[0-9]{2}[A-Z]{0,3}[0-9]{4}|[0-9]{2}BH[0-9]{4}[A-Z]{1,2})$";
   }
 }

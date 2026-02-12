@@ -22,4 +22,7 @@ public interface ParkingLotService {
 
     // 4. To update the Lot Information.
     ParkingLotDto updateParkingLot(Long id, ParkingLotRequestDto request);
+
+    // 5. To delete a Lot
+    void deleteParkingLot(Long id);
 }
