@@ -16,7 +16,7 @@ import { HttpClient } from '@angular/common/http';
 export class ParkingService {
   
   // Base URL pointing to the local Spring Boot Server
-  private baseUrl = 'http://localhost:8080/api'
+  private baseUrl = 'https://parking-system-backend-k8ad.onrender.com/api'
 
   constructor(private http: HttpClient){}
 

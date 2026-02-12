@@ -11,7 +11,7 @@ public class AppConstants {
     private AppConstants() {}
 
     // Defines which Frontend URL is allowed to access this API (CORS Security).
-    public static final String FRONTEND_URL = "http://localhost:4200";
+    public static final String FRONTEND_URL = "https://parking-system-frontend-t9wu.onrender.com";
 
     // The initial grace period. If a car exits within this time, the cost is 0.
     // Used in BillingServiceImpl.
