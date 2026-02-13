@@ -9,23 +9,24 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-# 1. Copy the Aiven CA Certificate (Must be in same folder as Dockerfile)
+# Copy the Aiven CA Certificate
 COPY ca.pem /app/ca.pem
 
-# 2. Import the Certificate into Java's Truststore
-# This tells the JVM to trust Aiven connections
+# Create a dedicated Truststore for the app (Password: securepass)
 RUN keytool -import \
-    -trustcacerts \
-    -alias aiven-ca \
+    -alias aiven \
     -file /app/ca.pem \
-    -keystore $JAVA_HOME/lib/security/cacerts \
-    -storepass changeit \
+    -keystore /app/truststore.jks \
+    -storepass securepass \
     -noprompt
 
+# Copy App Jar
 COPY --from=build /app/target/*.jar /app/
 RUN sh -c 'find . -name "*.jar" -not -name "original-*.jar" -exec mv {} app.jar \;'
 
+# User Permissions
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+RUN chown appuser:appgroup /app/truststore.jks
 USER appuser
 
 EXPOSE 8080
