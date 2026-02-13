@@ -10,13 +10,16 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-# Copy the JAR from the build stage
+# Copy only the JAR
 COPY --from=build /app/target/*.jar app.jar
 
-# Render mounts secret files to /etc/secrets/ automatically.
-# We just need to make sure our app has permission to read them.
+# Important: Render mounts secrets at /etc/secrets
+# No need to COPY certificates into the image.
+
+# Use a non-root user for security
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser
 
+# Use the port you need (e.g., 8081)
 EXPOSE 8081
 ENTRYPOINT ["java", "-jar", "app.jar"]
