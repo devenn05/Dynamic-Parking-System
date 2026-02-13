@@ -1,10 +1,12 @@
-import { Component, OnInit, signal, ViewChild, effect } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, ViewChild, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router'; // <--- NEW IMPORT
+import { ActivatedRoute } from '@angular/router'; 
 import { ParkingService } from '../../services/parking';
 import { ParkingSession } from '../../models/models.interface';
 import { ConfirmDialog } from '../shared/confirm-dialog';
+import { Subscription } from 'rxjs';
+import { RealTimeService } from '../../services/real-time-service';
 
 // Material Imports
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -32,9 +34,11 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
   templateUrl: './parking-sessions.html',
   styleUrl: '../../app.css',
 })
-export class ParkingSessions implements OnInit {
+export class ParkingSessions implements OnInit, OnDestroy {
   activeDataSource = new MatTableDataSource<ParkingSession>([]);
   historyDataSource = new MatTableDataSource<ParkingSession>([]);
+
+  private sseSub: Subscription | null = null;
 
   activeColumns: string[] = ['vehicleNumber', 'vehicleType', 'parkingLotName', 'slotNumber', 'entryTime', 'actions'];
   historyColumns: string[] = ['vehicleNumber', 'vehicleType', 'parkingLotName', 'slotNumber', 'entryTime', 'exitTime', 'totalAmount', 'status'];
@@ -52,7 +56,8 @@ export class ParkingSessions implements OnInit {
     private parkingService: ParkingService,
     private notificationService: NotificationService, 
     private dialog: MatDialog,
-    private route: ActivatedRoute // <--- INJECT ACTIVATED ROUTE
+    private route: ActivatedRoute,
+    private realTimeService: RealTimeService
   ) {
     effect(() => {
         this.applyFilters();
@@ -65,7 +70,46 @@ export class ParkingSessions implements OnInit {
        const id = +params['id'];
        this.selectedLotId.set(id); // Set the Lot ID
        this.loadData(); // Trigger the API call
+       this.subscribeToLiveSessions(id);
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.sseSub) this.sseSub.unsubscribe();
+  }
+
+  subscribeToLiveSessions(lotId: number) {
+    this.sseSub = this.realTimeService.getSessionUpdate(lotId).subscribe({
+      next: (update) => {
+        console.log("Live Session Update:", update);
+
+        if (update.type === 'SESSION_START') {
+            // Add to Active Table
+            const currentData = [...this.activeDataSource.data];
+            this.activeDataSource.data = [update.session, ...currentData];
+            this.notificationService.showSuccess(`New vehicle entered: ${update.session.vehicleNumber}`);
+        } 
+        else if (update.type === 'SESSION_END' || update.type === 'TERMINATED') {
+            // Remove from Active Table
+            const updatedData = this.activeDataSource.data.filter(
+                s => s.sessionId !== update.session.sessionId
+            );
+            this.activeDataSource.data = updatedData;
+
+            // Optional: Re-fetch History to see the newly completed session
+            this.loadHistoryOnly(); 
+        }
+      }
+    });
+  }
+
+  loadHistoryOnly() {
+    const id = this.selectedLotId();
+    if (id) {
+        this.parkingService.getAllSessions(id).subscribe(data => {
+            this.historyDataSource.data = data;
+        });
+    }
   }
 
   loadData() {

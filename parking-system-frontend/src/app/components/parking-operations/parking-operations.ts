@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router'; // <--- NEW IMPORT
@@ -8,6 +8,8 @@ import { NotificationService } from '../../services/notification';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { RealTimeService } from '../../services/real-time-service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-parking-operations',
@@ -15,7 +17,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
   templateUrl: './parking-operations.html',
   styleUrl: '../../app.css',
 })
-export class ParkingOperations implements OnInit {
+export class ParkingOperations implements OnInit, OnDestroy {
 
   // We no longer need a list of 'lots'. We just need the details of the CURRENT lot.
   currentLot = signal<ParkingLot | null>(null);
@@ -28,11 +30,14 @@ export class ParkingOperations implements OnInit {
   ticket = signal<ParkingTicket | null>(null);
   private messageTimer: any;
 
+  private sseSubscription: Subscription | null = null;
+
   constructor(
     private parkingService: ParkingService,
     private notificationService: NotificationService,
     private dialog: MatDialog,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private realTimeService: RealTimeService
   ) {}
   
   ngOnInit(): void {
@@ -40,8 +45,37 @@ export class ParkingOperations implements OnInit {
     this.route.parent?.params.subscribe(params => {
        this.currentLotId = +params['id']; 
        this.entryData.parkingLotId = this.currentLotId;
-       this.exitData.parkingLotId = this.currentLotId; 
+       this.exitData.parkingLotId = this.currentLotId;
+       this.loadCurrentLotStatus();
+       this.subscribeToLotUpdates();
     });
+  }
+  ngOnDestroy(): void {
+    if (this.sseSubscription) {
+      this.sseSubscription.unsubscribe();
+    }
+  }
+
+
+  subscribeToLotUpdates(): void {
+    if (this.currentLotId) {
+      this.sseSubscription = this.realTimeService.getSlotUpdate(this.currentLotId)
+        .subscribe({
+          next: (update) => {
+            console.log('Live update received:', update);
+            // Find the current lot signal and update its availableSlots
+            const lot = this.currentLot();
+            if (lot) {
+              lot.availableSlots = update.availableSlots;
+              this.currentLot.set({...lot}); // Trigger signal update
+              
+              // Optional: Show a subtle notification
+              this.notificationService.showSuccess(`Lot updated: ${update.type}`);
+            }
+          },
+          error: (err) => console.error('SSE connection error:', err)
+        });
+    }
   }
 
   // <--- NEW: Only fetch info for THIS lot to see availability

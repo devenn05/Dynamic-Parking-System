@@ -47,7 +47,6 @@ export class LotLayoutComponent implements OnInit {
   }
 
   handleExit() {
-    // ... exit logic remains mostly the same ...
     const dialogRef = this.dialog.open(ConfirmDialog, {
       width: '350px',
       data: {
