@@ -1,26 +1,35 @@
-# Stage 1: Build the application using Maven with Eclipse Temurin JDK 17
-FROM maven:3.8.6-eclipse-temurin-17 AS builder
+# ===============================
+# Stage 1: Build the Application
+# ===============================
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 
-# Set the working directory inside the container
 WORKDIR /app
-
-# Copy the entire backend project into the container
-COPY . .
-
-# Run the Maven build command to produce the JAR file
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
+COPY src ./src
 RUN mvn clean package -DskipTests
 
-# Stage 2: Create the final, lightweight image using Eclipse Temurin JRE 17
-FROM eclipse-temurin:17-jre
+# ===============================
+# Stage 2: Create the Final Runtime Image
+# ===============================
+FROM eclipse-temurin:17-jre-alpine
 
-# Set the working directory
 WORKDIR /app
 
-# Copy ONLY the built JAR file from the 'builder' stage
-COPY --from=builder /app/target/*.jar app.jar
+# --- AIVEN CERTIFICATE IMPORT ---
+# 1. Copy the Aiven CA certificate from our project into the container.
+COPY aiven-ca.pem /tmp/aiven-ca.pem
 
-# Expose the port the application will run on
+# 2. Use Java's 'keytool' to import our certificate into the main truststore.
+#    The default password for the Java cacerts file is 'changeit'.
+RUN keytool -import -alias aiven-ca -keystore /etc/ssl/certs/java/cacerts -file /tmp/aiven-ca.pem -storepass changeit -noprompt
+
+# --- END OF CERTIFICATE IMPORT ---
+
+# Copy the built JAR from the first stage
+COPY --from=build /app/target/*.jar app.jar
+
 EXPOSE 8080
 
-# The command to run the application when the container starts
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+# Command to run the application
+ENTRYPOINT ["java", "-jar", "app.jar"]
