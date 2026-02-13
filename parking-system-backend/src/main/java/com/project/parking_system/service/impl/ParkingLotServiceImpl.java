@@ -2,6 +2,7 @@ package com.project.parking_system.service.impl;
 
 import com.project.parking_system.dto.ParkingLotDto;
 import com.project.parking_system.dto.ParkingLotRequestDto;
+import com.project.parking_system.dto.kafka.LotUpdateDto;
 import com.project.parking_system.entity.ParkingLot;
 import com.project.parking_system.entity.ParkingSession;
 import com.project.parking_system.entity.ParkingSlot;
@@ -13,6 +14,7 @@ import com.project.parking_system.mapper.ParkingLotMapper;
 import com.project.parking_system.repository.ParkingLotRepository;
 import com.project.parking_system.repository.ParkingSessionRepository;
 import com.project.parking_system.repository.ParkingSlotRepository;
+import com.project.parking_system.service.ParkingEventProducer;
 import com.project.parking_system.service.ParkingLotService;
 import com.project.parking_system.service.ParkingSlotService;
 import jakarta.transaction.Transactional;
@@ -36,6 +38,7 @@ public class ParkingLotServiceImpl implements ParkingLotService {
     private final ParkingSlotService parkingSlotService;
     private final ParkingSlotRepository parkingSlotRepository;
     private final ParkingSessionRepository parkingSessionRepository;
+    private final ParkingEventProducer eventProducer;
 
     //Creates a new lot.
     //Transactional: Ensures that both the Lot and its Slots are saved. If slot generation fails, the Lot is rolled back.
@@ -55,6 +58,9 @@ public class ParkingLotServiceImpl implements ParkingLotService {
 
         // 4. // Return DTO (Available = Total at start)
         ParkingLotDto dto = ParkingLotMapper.toDto(savedLot);
+
+        LotUpdateDto update = LotUpdateDto.builder().type("LOT_CREATED").lot(dto).build();
+        eventProducer.sendUpdate(update);
 
         dto.setAvailableSlots(savedLot.getTotalSlots());
 
@@ -133,6 +139,10 @@ public class ParkingLotServiceImpl implements ParkingLotService {
 
         // Recalculate available slots
         ParkingLotDto dto = ParkingLotMapper.toDto(savedLot);
+
+        LotUpdateDto update = LotUpdateDto.builder().type("LOT_UPDATED").lot(dto).build();
+        eventProducer.sendUpdate(update);
+
         long available = parkingSlotRepository.countByParkingLotIdAndSlotStatus(savedLot.getId(), SlotStatus.AVAILABLE);
         dto.setAvailableSlots((int) available);
 
@@ -143,25 +153,39 @@ public class ParkingLotServiceImpl implements ParkingLotService {
     @Override
     @Transactional
     public void deleteParkingLot(Long id){
-        // Checks if the lot exits
-        ParkingLot currentLot = parkingLotRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Lot not found"));
+        // 1. Checks if the lot exists
+        ParkingLot currentLot = parkingLotRepository.findById(id)
+                .orElseThrow(()-> new ResourceNotFoundException("Lot not found"));
 
-        // Finds the total Active Session in that ParkingLot
-        List<ParkingSession> activeSessions = parkingSessionRepository.findByParkingSlotParkingLotIdAndSessionStatus(id, SessionStatus.ACTIVE);
+        // 2. PRE-MAPPING: Create the DTO before we delete the record
+        // We need this DTO so the Notification Service knows WHICH ID to remove from the frontend list
+        ParkingLotDto lotDto = ParkingLotMapper.toDto(currentLot);
 
-        // Checks if a Lot has an Active Parking Session
-        if (!activeSessions.isEmpty()) throw new BusinessException("Cannot delete a Parking lot with Active Parking Session.");
+        // 3. Finds the total Active Session in that ParkingLot
+        List<ParkingSession> activeSessions = parkingSessionRepository
+                .findByParkingSlotParkingLotIdAndSessionStatus(id, SessionStatus.ACTIVE);
 
-        // Delete all the Sessions that is affiliated to that Parking Lot Slots
+        // 4. Validation
+        if (!activeSessions.isEmpty()) {
+            throw new BusinessException("Cannot delete a Parking lot with Active Parking Session.");
+        }
+
+        // 5. Data Cleanup (Sessions -> Slots)
         List<ParkingSession> allSessions = parkingSessionRepository.findByParkingSlotParkingLotId(id);
         parkingSessionRepository.deleteAll(allSessions);
 
-        // Delete all the Slots affiliated to that Parking Lot
         List<ParkingSlot> allSlots = parkingSlotRepository.findByParkingLotIdOrderBySlotNumberAsc(id);
         parkingSlotRepository.deleteAll(allSlots);
 
-        // Delete Parking Lot
-        parkingLotRepository.deleteById(id);
+        // 6. Kafka Notification: Tell the world this lot is gone
+        LotUpdateDto update = LotUpdateDto.builder()
+                .type("LOT_DELETED")
+                .lot(lotDto)
+                .build();
+        eventProducer.sendUpdate(update);
+
+        // 7. Actual DB Deletion
+        parkingLotRepository.delete(currentLot);
     }
 }
 
