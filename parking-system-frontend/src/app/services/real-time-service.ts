@@ -15,7 +15,7 @@ export class RealTimeService{
     getSlotUpdate(lotId: number): Observable<any>{
         if (!isPlatformBrowser(this.platformId)) return EMPTY;
         return new Observable(observer => {
-      const eventSource = new EventSource(`https://parking-notification-service.onrender.com/api/stream/subscribe/${lotId}`);
+      const eventSource = new EventSource(`https://notification-service-ne2b.onrender.com/api/stream/subscribe/${lotId}`);
       eventSource.addEventListener('parking-update', (event: any) => {
         const data = JSON.parse(event.data);
         this.ngZone.run(() => observer.next(data));
@@ -29,7 +29,7 @@ export class RealTimeService{
     getSessionUpdate(lotId: number): Observable<any>{
         if (!isPlatformBrowser(this.platformId)) return EMPTY;
         return new Observable(observer => {
-        const eventSource = new EventSource(`http://localhost:8081/api/stream/subscribe/${lotId}`);
+        const eventSource = new EventSource(`https://notification-service-ne2b.onrender.com/api/stream/subscribe/${lotId}`);
         eventSource.addEventListener('session-update', (event: any) => {
         const data = JSON.parse(event.data);
         this.ngZone.run(() => observer.next(data));
@@ -44,7 +44,7 @@ export class RealTimeService{
 
     return new Observable(observer => {
         // We subscribe to Lot 0 for global changes
-        const eventSource = new EventSource(`http://localhost:8081/api/stream/subscribe/0`);
+        const eventSource = new EventSource(`https://notification-service-ne2b.onrender.com/api/stream/subscribe/0`);
 
         eventSource.addEventListener('lot-registry-update', (event: any) => {
             const data = JSON.parse(event.data);
