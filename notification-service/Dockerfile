@@ -6,14 +6,15 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Stage 2: Runtime
-FROM eclipse-temurin:17-jre-alpine
+# CHANGED: We removed "-alpine". This uses a Debian-based image 
+# which includes all standard SSL Certificates by default.
+FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
 
-# Key Change: Added JAVA_OPTS to limit memory usage to fit in free tier
-# This prevents the app from being killed by the provider for using too much RAM.
+# Keep the memory limit
 ENV JAVA_OPTS="-XX:MaxRAMPercentage=75 -XX:+UseSerialGC"
 
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
