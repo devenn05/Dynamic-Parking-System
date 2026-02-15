@@ -10,10 +10,10 @@ FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
-# --- REMOVED USER APPUSER FOR PERMISSIONS CHECK ---
-# (Commented out for now to ensure secret files are readable)
-# RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-# USER appuser
-
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+
+# Key Change: Added JAVA_OPTS to limit memory usage to fit in free tier
+# This prevents the app from being killed by the provider for using too much RAM.
+ENV JAVA_OPTS="-XX:MaxRAMPercentage=75 -XX:+UseSerialGC"
+
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
