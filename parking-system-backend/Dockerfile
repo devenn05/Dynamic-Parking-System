@@ -1,19 +1,29 @@
-# Stage 1: Build
-FROM maven:3.9.6-eclipse-temurin-17 AS build
-WORKDIR /app
+# --- STAGE 1: Build the application ---
+FROM eclipse-temurin:17-jdk-jammy AS build
+
+WORKDIR /workspace/app
+
+# Copy Maven wrapper and dependencies
+COPY mvnw .
+COPY .mvn .mvn
 COPY pom.xml .
-COPY src ./src
-RUN mvn clean package -DskipTests
+RUN ./mvnw dependency:go-offline
 
-# Stage 2: Runtime
-FROM eclipse-temurin:17-jre-alpine
-WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
+# Copy source code and build
+COPY src src
+RUN ./mvnw package -DskipTests
 
-# --- REMOVED USER APPUSER FOR PERMISSIONS CHECK ---
-# (Commented out for now to ensure secret files are readable)
-# RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-# USER appuser
+# --- STAGE 2: Run the application ---
+FROM eclipse-temurin:17-jre-jammy
 
+# Define where the Jar is
+ARG JAR_FILE=/workspace/app/target/*.jar
+
+# Copy the built Jar
+COPY --from=build ${JAR_FILE} app.jar
+
+# Render will pass the PORT env var, we expose 8080 for documentation
 EXPOSE 8080
+
+# Run command
 ENTRYPOINT ["java", "-jar", "app.jar"]
