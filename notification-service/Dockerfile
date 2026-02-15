@@ -9,8 +9,18 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-# --- NEW LINE: Extract truststore to the filesystem ---
-COPY --from=build /app/src/main/resources/truststore.jks /app/truststore.jks
+# 1. Copy the Aiven CA Certificate from your project folder
+COPY ca.pem /app/ca.pem
+
+# 2. Import it into the DEFAULT Java Keystore
+# This makes Java trust Aiven natively without extra config
+RUN keytool -import \
+    -trustcacerts \
+    -alias aiven-ca \
+    -file /app/ca.pem \
+    -keystore $JAVA_HOME/lib/security/cacerts \
+    -storepass changeit \
+    -noprompt
 
 COPY --from=build /app/target/*.jar /app/
 RUN sh -c 'find . -name "*.jar" -not -name "original-*.jar" -exec mv {} app.jar \;'
