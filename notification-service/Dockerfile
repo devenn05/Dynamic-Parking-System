@@ -9,24 +9,13 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-# Copy the Aiven CA Certificate
-COPY ca.pem /app/ca.pem
+# --- NEW LINE: Extract truststore to the filesystem ---
+COPY --from=build /app/src/main/resources/truststore.jks /app/truststore.jks
 
-# Create a dedicated Truststore for the app (Password: securepass)
-RUN keytool -import \
-    -alias aiven \
-    -file /app/ca.pem \
-    -keystore /app/truststore.jks \
-    -storepass securepass \
-    -noprompt
-
-# Copy App Jar
 COPY --from=build /app/target/*.jar /app/
 RUN sh -c 'find . -name "*.jar" -not -name "original-*.jar" -exec mv {} app.jar \;'
 
-# User Permissions
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-RUN chown appuser:appgroup /app/truststore.jks
 USER appuser
 
 EXPOSE 8080
