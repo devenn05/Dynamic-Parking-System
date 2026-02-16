@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ParkingLot, ParkingSlot,EntryRequest,ExitRequest,ParkingTicket, Bill, ParkingSession } from '../models/models.interface';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
 /**
  * Parking Service
@@ -16,7 +17,7 @@ import { HttpClient } from '@angular/common/http';
 export class ParkingService {
   
   // Base URL pointing to the local Spring Boot Server
-  private baseUrl = 'https://parking-system-backend-k8ad.onrender.com/api'
+  private baseUrl = environment.apiUrl;
 
   constructor(private http: HttpClient){}
 

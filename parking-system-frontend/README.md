@@ -1,51 +1,57 @@
-# Dynamic Pricing System for Parking Lots (Frontend)
+# 💻 Parking System - Angular Frontend
 
-## 1. Project Overview
+The user interface for the Dynamic Pricing Parking System. Built with **Angular 21**, it utilizes **Angular Material** for a responsive design and **Angular Signals** for granular, high-performance state management.
 
-This is a functional, minimal-UI Angular application that serves as the frontend for the **Dynamic Pricing System for Parking Lots**. It interacts with the backend via REST APIs to provide a simple and effective user interface for managing parking operations.
-
-As per the requirements, the focus is on functionality and clarity over complex styling. The application is built as a Single Page Application (SPA).
-
----
-
-## 2. Tech Stack
-
--   **Angular 21.1.2**
--   **TypeScript**
--   **HTML**
--   **CSS** (No heavy UI frameworks)
--   **Angular CLI**
+This Single Page Application (SPA) connects to two distinct backend services:
+1.  **Main Backend** (REST) for transactional operations.
+2.  **Notification Service** (SSE) for real-time updates.
 
 ---
 
-## 3. Screens & Features
+## 🎨 Features & Screens
 
-The UI is divided into three main screens, accessible via the top navigation bar.
+### 1. Operations Dashboard (`/lot/:id/operations`)
+*   **Unified Interface:** A split-screen layout allowing operators to handle **Vehicle Entry** and **Exit** simultaneously.
+*   **Visual Feedback:**
+    *   **Tickets:** Generated instantly upon entry (Entry Time, Slot #).
+    *   **Bills:** Calculated upon exit with a breakdown of charges (Base Price + Surge Multiplier).
+*   **Real-time Availability:** The "Available Slots" counter updates live without refreshing the page.
 
-#### 1. Entry/Exit (`/operations`)
-This is the default and primary screen for daily operations.
--   **Vehicle Entry:** A form to input a vehicle's number and type, and select a parking lot. On successful entry, a **Ticket** is displayed showing the assigned slot number.
--   **Vehicle Exit:** A form to input a vehicle's number. On successful exit, a **Bill** is displayed with the total duration and calculated fee.
--   Error messages from the backend (e.g., "Lot is full", "Vehicle not found") are displayed clearly.
+### 2. Live Sessions (`/lot/:id/sessions`)
+*   **Monitoring:** View a table of all currently parked vehicles.
+*   **History:** Switch tabs to view past records and revenue generated.
+*   **Emergency Termination:** Admins can force-terminate a session (e.g., lost ticket scenarios).
 
-#### 2. Manage Lots (`/lots`)
-This screen serves as the administrative panel for managing parking facilities.
--   **Create Lot:** A form to define a new parking lot with its name, location, total capacity, and base hourly price.
--   **Lot List:** A table that displays all existing parking lots, including their real-time occupancy (`Available Slots / Total Slots`).
+### 3. Lot Management (Admin)
+*   **CRUD Operations:** Create new parking lots and configure capacity/pricing.
+*   **Live Registry:** See the status of all parking lots in the system at a glance.
 
-#### 3. Sessions Dashboard (`/sessions`)
-A powerful table view for tracking vehicles.
-*   **Tabs:** Switch between 'Current Active' and 'History'.
-*   **Filtering:**
-    *   **By Lot:** Dropdown to specific facility.
-    *   **Search:** Real-time search by Vehicle Number.
-    *   **Date:** Filter history by specific date.
-*   **Emergency Action:** The **"Terminate"** button allows admins to forcibly clear a vehicle from the system (frees up the slot) if manual override is required.
-
-#### 4. Global Features
-*   **Dark Mode:** Toggle switch in the navigation bar persists user preference in LocalStorage.
+### 4. Technical Features
+*   **Dark Mode:** A toggle-able theme (using Angular Material theming).
+*   **Environment Config:** distinct configurations for **Local Development** vs **Production (Render)**.
 
 ---
+
+## 🛠️ Technology Stack
+
+| Technology | Usage |
+| :--- | :--- |
+| **Angular 21** | Core Framework |
+| **TypeScript** | Strict typing for business logic |
+| **Angular Material** | UI Components (Tables, Cards, Forms, Dialogs) |
+| **Angular Signals** | State Management (Replaces older `BehaviorSubject` patterns) |
+| **RxJS** | Handling SSE streams and HTTP Events |
+
+---
+
+## 📡 Real-Time Integration
+
+The frontend uses a hybrid data fetching strategy to ensure data consistency:
+
+1.  **Initial Load (REST):** When a component initializes, it fetches the current state (e.g., "50 available slots") via a standard HTTP GET request to the **Main Backend**.
+2.  **Live Updates (SSE):** Simultaneously, the `RealTimeService` opens a persistent connection to the **Notification Service**.
+3.  **Merge:** As updates arrive (`SlotUpdate`, `SessionEntry`), Angular Signals automatically update the view.
+
 
 ## 4. Assumptions Made
 

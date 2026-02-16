@@ -1,71 +1,98 @@
-# Dynamic Pricing System for Parking Lots
+# 🚗 Dynamic Pricing & Management System for Parking Lots
 
-![Project Status](https://img.shields.io/badge/status-complete-green)
+![Project Status](https://img.shields.io/badge/Status-Live_Production-success)
+![Angular](https://img.shields.io/badge/Angular-DD0031?logo=angular&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?logo=spring-boot&logoColor=white)
+![Kafka](https://img.shields.io/badge/Apache_Kafka-231F20?logo=apachekafka&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?logo=redis&logoColor=white)
 
-This repository contains the full-stack source code for a **Dynamic Pricing System for Parking Lots**. The system manages parking facilities, vehicle entry/exit, and dynamically calculates charges based on parking duration and real-time lot occupancy.
+A production-grade, full-stack microservices application designed to manage parking facilities, track vehicles, and calculate parking fees dynamically based on duration and real-time lot occupancy.
 
-The project is structured as a monorepo, containing:
--   A **Backend** service built with Java Spring Boot.
--   A **Frontend** single-page application built with Angular.
-
----
-
-## Core Features
-
--   **Lot Management:** Create, view, and update parking facilities with defined capacity and pricing.
--   **Slot Management:** Automatically generate and track the status (`AVAILABLE`/`OCCUPIED`) of each slot.
--   **High-Concurrency Operations:**
-    -   Safely handle simultaneous vehicle entries using **Pessimistic Locking** to prevent slot assignment race conditions.
-    -   Safely handle simultaneous exit attempts for the same vehicle using **Optimistic Locking** to prevent data corruption.
--   **Dynamic Pricing Engine:** Calculates bills using a formula that incorporates a free initial period, hourly rates, and a surge multiplier based on current lot occupancy.
--   **Live Dashboard:** View currently parked vehicles and a complete history of all past parking sessions with powerful search and filtering capabilities.
--   **Administrative Tools:** Manually terminate "stuck" sessions to free up slots.
--   **Dark Mode:** A sleek, user-friendly dark theme that persists across sessions.
----
-
-## Tech Stack
-
-| Component | Technology                                             |
-| :-------- | :----------------------------------------------------- |
-| **Backend**  | Java 24, Spring Boot 3.5.9, Spring Data JPA, Maven  |
-| **Frontend** | Angular 21.1.0, TypeScript, HTML/CSS                |
-| **Database** | MySQL                                               |
-| **API**      | RESTful API                                         |
+The system features an **Event-Driven Architecture**, pushing live updates to the frontend without page refreshes using Server-Sent Events (SSE).
 
 ---
 
-## High-Level Architecture
+## 🔗 Live Demo
+### [🌐 Access the Parking Dashboard](https://parking-system-frontend-t9wu.onrender.com/)
+*(Hosted on Render. Please allow approx 30-50s for the free-tier services to wake up)*
 
-The application follows a simple, robust client-server architecture.
+---
 
+## 🏗️ System Architecture
+
+The application uses a separated command-query flow facilitated by Apache Kafka.
+
+```mermaid
+graph LR
+    User[User/Client] -- HTTP REST --> MainAPI[Main Backend API]
+    MainAPI -- Read/Write --> DB[(Aiven MySQL)]
+    MainAPI -- Publish Events --> Kafka[(Confluent Cloud Kafka)]
+    Kafka -- Consume Events --> Notify[Notification Service]
+    Notify -- Cache State --> Redis[(Upstash Redis)]
+    Notify -- Server-Sent Events (SSE) --> User
 ```
-+--------------------+      HTTP/S      +-------------------------+      JPA       +--------------+
-|                    |                  |                         |                |              |
-|  Angular Frontend  | <--------------->|    Spring Boot Backend  | <------------->|   Database   |
-|  (Client Browser)  |     (REST API)   |       (Java Service)    |                |   (MySQL)    |
-|                    |                  |                         |                |              |
-+--------------------+                  +-------------------------+                +--------------+
 
-```
--   The **Angular Frontend** provides the user interface for all operations.
--   The **Spring Boot Backend** exposes a REST API, contains all the business logic, and manages data persistence.
--   The **Database** stores the state of lots, slots, vehicles, and sessions.
+1.  **Command Flow (User Action):** The Angular Frontend sends HTTP requests (Entry/Exit/Create Lot) to the **Main Backend**.
+2.  **Persistence:** The Main Backend validates logic, persists data to **MySQL**, and acts as a **Kafka Producer**.
+3.  **Event Stream:** 'Vehicle Entry' or 'Lot Update' events are published to specific Kafka topics.
+4.  **Notification Flow:** The **Notification Service** consumes these events. It updates the **Redis** cache (for quick state retrieval) and pushes the data immediately to connected clients via **SSE**.
+5.  **Real-Time UI:** The Angular Signals in the frontend automatically update the view (Ticket/Bill generation, Slot Counts, Tables) with zero manual refreshing.
 
 ---
 
-## Repository Structure
+## 🛠️ Technology Stack
 
-The project is organized into two main sub-directories:
+| Domain | Technology / Service |
+| :--- | :--- |
+| **Frontend** | Angular 21, TypeScript, Angular Material, RxJS |
+| **Main Backend** | Java 24, Spring Boot 3, Spring Data JPA, Hibernate |
+| **Real-Time Service**| Java Spring Boot, SseEmitter (Server-Sent Events) |
+| **Database** | MySQL (Hosted on **Aiven**) |
+| **Message Broker** | Apache Kafka (Hosted on **Confluent Cloud**) |
+| **Caching** | Redis (Hosted on **Upstash**) |
+| **Hosting** | **Render** (Containerized Deployments) |
 
-```
+---
+
+## 📦 Repository Structure
+
+The project is organized as a monorepo containing three distinct services:
+
+```bash
 .
-├── parking-system-backend/          # Contains the Java Spring Boot Application
-│   └── README.md                    # Backend-specific documentation
-├── parking-system-frontend/         # Contains the Angular Application
-│   └── README.md                    # Frontend-specific documentation
-└── README.md                        # This file (Project Overview)
+├── parking-system-backend/        # Main Business Logic (REST API, MySQL)
+├── notification-service/          # Real-time Update Handler (Kafka Consumer, SSE)
+├── parking-system-frontend/       # Client UI (Angular)
+└── README.md                      # Project Overview (You are here)
 ```
+
+Each folder contains its own `README.md` with specific setup instructions and environment configuration.
+
 ---
+
+## 💡 Key Features
+
+### 1. Operational Management
+*   **Vehicle Entry:** Generates a ticket with an allocated slot. Uses **Pessimistic Locking** to ensure two cars are never assigned the same slot simultaneously.
+*   **Vehicle Exit:** Generates a bill. Uses **Optimistic Locking** to prevent double-billing.
+*   **Lot Management:** Admin interface to create new lots or increase capacity.
+
+### 2. Dynamic Pricing Engine
+Bills are calculated based on logic defined in the Main Backend:
+*   **Free Tier:** First 30 mins are strictly free.
+*   **Base Rate:** Hourly billing (rounded up).
+*   **Surge Pricing:** Multipliers applied based on lot occupancy at exit time:
+    *   `<50%` Full: **1.0x**
+    *   `50-80%` Full: **1.25x**
+    *   `>80%` Full: **1.5x**
+
+### 3. Real-Time Dashboard
+*   **Live Availability:** Slot counters update instantly across all active users.
+*   **Live Sessions:** New entries/exits appear in the monitoring table immediately.
+*   **Visual Feedback:** Tickets and Bills pop up dynamically via Toast notifications and on-screen cards.
+
+---
+
 ## 6. Assumptions
 # Backend
 
@@ -123,37 +150,35 @@ git clone  https://github.com/devenn05/Dynamic-Parking-System.git
 cd dynamic-parking-system
 ```
 
-#### 2. Run the Backend Server
-First, start the Spring Boot backend, which will run on `http://localhost:8080`.
+## 🚀 Getting Started (Local Development)
 
-```sh
-# Navigate to the backend directory
+To run the entire suite locally, you will need **Java 17+**, **Node.js**, and an instance of **Kafka** & **MySQL** (local or cloud).
+
+### 1. Configure Services
+You must configure `application.properties` in both backends to point to your DB and Broker. 
+*See specific sub-directory READMEs for detailed Env Variables.*
+
+### 2. Run Main Backend
+```bash
 cd parking-system-backend
-
-# Run the application using Maven
 mvn spring-boot:run
+# Runs on localhost:8080
 ```
-Leave this terminal running. The backend is now ready to accept API requests.
 
-#### 3. Run the Frontend Application
-Open a **new terminal window** and start the Angular frontend, which will run on `http://localhost:4200`.
+### 3. Run Notification Service
+```bash
+cd notification-service
+mvn spring-boot:run
+# Runs on localhost:8081
+```
 
-```sh
-# Navigate to the frontend directory from the project root
+### 4. Run Frontend
+```bash
 cd parking-system-frontend
-
-# Start the Angular development server
+npm install
 ng serve
+# Runs on localhost:4200
 ```
-Leave this terminal running as well.
-
-#### 4. Access the Application
-Open your web browser and navigate to:
-
-**http://localhost:4200**
-
-You should see the parking management system interface, fully connected and ready to use!
-
 ---
 
 ## Detailed Documentation
@@ -162,5 +187,7 @@ For more specific details about each part of the project, please refer to their 
 
 -   **Backend Documentation:** [**./backend/README.md**](./backend/README.md)
     -   (Includes API endpoint list, pricing logic in detail, and backend setup.)
+    **Notification Service Documentation:** [**./notification-service/README.md**](./notification-service/README.md)
+    -   (Includes API endpoint list, kafka and Redis setup.)
 -   **Frontend Documentation:** [**./frontend/README.md**](./frontend/README.md)
     -   (Includes descriptions of screens, components, and frontend setup.)
