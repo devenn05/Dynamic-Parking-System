@@ -185,9 +185,9 @@ ng serve
 
 For more specific details about each part of the project, please refer to their individual README files:
 
--   **Backend Documentation:** [**./backend/README.md**](./backend/README.md)
+-   **Backend Documentation:** [**./parking-system-backend/README.md**](./parking-system-backend/README.md)
     -   (Includes API endpoint list, pricing logic in detail, and backend setup.)
     **Notification Service Documentation:** [**./notification-service/README.md**](./notification-service/README.md)
     -   (Includes API endpoint list, kafka and Redis setup.)
--   **Frontend Documentation:** [**./frontend/README.md**](./frontend/README.md)
+-   **Frontend Documentation:** [**./parking-system-frontend/README.md**](./parking-system-frontend/README.md)
     -   (Includes descriptions of screens, components, and frontend setup.)
